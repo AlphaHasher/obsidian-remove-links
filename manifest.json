@@ -6,6 +6,5 @@
 	"description": "Remove hyperlinks from selected text or the entire note.",
 	"author": "Daniel Agafonov",
 	"authorUrl": "https://github.com/AlphaHasher",
-	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
