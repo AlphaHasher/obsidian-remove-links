@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "hyperlink-remover",
+	"name": "Hyperlink Remover",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "Remove hyperlinks from selected text or the entire note.",
+	"author": "Daniel Agafonov",
+	"authorUrl": "https://github.com/AlphaHasher",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
