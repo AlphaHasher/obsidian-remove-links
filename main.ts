@@ -10,10 +10,10 @@ export default class HyperlinkRemover extends Plugin {
 				console.log(editor.getSelection());
 				const selection = editor.getSelection();
 				if (selection) {
-					const updatedSelection = selection.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-					editor.replaceSelection(updatedSelection);
+					editor.replaceSelection(removeHyperlinks(selection));
+					new Notice('Hyperlinks removed from selection');
 				} else {
-					new Notice('No text selected to remove hyperlinks from.');
+					new Notice('No text selected to remove hyperlinks from');
 				}
 			}
 		});
@@ -22,14 +22,65 @@ export default class HyperlinkRemover extends Plugin {
 			name: 'Remove hyperlinks from file',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
 				const content = editor.getValue();
-				const updatedContent = content.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-				editor.setValue(updatedContent);
+				const updatedContent = removeHyperlinks(content);
+				if (content !== updatedContent) {
+					editor.setValue(updatedContent);
+					new Notice('Hyperlinks removed from file');
+				} else {
+					new Notice('No hyperlinks found in the file');
+				}
 			}
 		});
+
+		// Context menu / Remove hyperlinks / Selection
+		this.registerEvent(
+			this.app.workspace.on("editor-menu", (menu, editor, view) => {
+				menu.addItem((item) => {
+					item.setTitle("Remove hyperlinks from selection")
+						.setIcon("unlink")
+						.setDisabled(!editor.somethingSelected())
+						.onClick(() => {
+							const selection = editor.getSelection();
+							const updatedSelection = removeHyperlinks(selection);
+							if (selection !== updatedSelection) {
+								editor.replaceSelection(updatedSelection);
+								new Notice('Hyperlinks removed from selection');
+							} else {
+								new Notice('No hyperlinks found in the selection');
+							}
+						});
+				});
+			})
+		);
+
+		// Context menu / Remove hyperlinks / File
+		this.registerEvent(
+			this.app.workspace.on("editor-menu", (menu, editor, view) => {
+				menu.addItem((item) => {
+					item.setTitle("Remove hyperlinks from file")
+						.setIcon("unlink")
+						.onClick(() => {
+							const content = editor.getValue();
+							const updatedContent = removeHyperlinks(content);
+							if (content !== updatedContent) {
+								editor.setValue(updatedContent);
+								new Notice('Hyperlinks removed from file');
+							} else {
+								new Notice('No hyperlinks found in the file');
+							}
+						});
+				});
+			})
+		);
 
 	}
 
 	onunload() {
 
 	}
+}
+
+// function to remove hyperlinks from a string
+function removeHyperlinks(text: string): string {
+	return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
 }
