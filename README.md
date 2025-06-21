@@ -1,6 +1,6 @@
 # Hyperlink Removal Plugin
 
-- Simple and lightweight plugin for [Obsidian](obsidian.md) to remove hyperlinks from either selections or the entire file.
+- Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks from either selections or the entire file.
 
 ## Right in the Context Menu!
 
