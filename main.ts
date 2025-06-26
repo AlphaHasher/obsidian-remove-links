@@ -7,7 +7,6 @@ export default class HyperlinkRemover extends Plugin {
 			id: 'remove-hyperlinks-from-selection',
 			name: 'Remove hyperlinks from selection',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
 				const selection = editor.getSelection();
 				if (selection) {
 					editor.replaceSelection(removeHyperlinks(selection));
