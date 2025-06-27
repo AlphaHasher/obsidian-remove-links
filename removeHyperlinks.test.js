@@ -1,8 +1,38 @@
 function removeHyperlinks(text) {
-	return text.replace(/\[((?:[^\]\\]|\\.|\](?!\())*?)\]\(([^)]+)\)/g, '$1');
+	let result = text;
+	let match;
+	const regex = /\[((?:[^\]\\]|\\.|\](?!\())*?)\]\(/g;
+
+	while ((match = regex.exec(text)) !== null) {
+		const linkText = match[1];
+		const startPos = match.index;
+		const urlStartPos = match.index + match[0].length;
+
+		// Find the matching closing parenthesis
+		let parenCount = 1;
+		let urlEndPos = urlStartPos;
+
+		while (urlEndPos < text.length && parenCount > 0) {
+			if (text[urlEndPos] === '(') {
+				parenCount++;
+			} else if (text[urlEndPos] === ')') {
+				parenCount--;
+			}
+			if (parenCount > 0) {
+				urlEndPos++;
+			}
+		}
+
+		if (parenCount === 0) {
+			const fullMatch = text.substring(startPos, urlEndPos + 1);
+			result = result.replace(fullMatch, linkText);
+		}
+	}
+
+	return result;
 }
 
-describe('removeHyperlinks', () => {
+describe('Remove Hyper Links Tests', () => {
   test('remove hyperlinks from text', () => {
     const inputText = "[hypertext](https)";
     const expectedOutput = "hypertext";
@@ -49,4 +79,12 @@ describe('removeHyperlinks', () => {
     const result = removeHyperlinks(inputText);
     expect(result).toBe(expectedOutput);
   });
+
+  test('handling of () in URL', () => {
+    const inputText = "[OK go song](https://en.m.wikipedia.org/wiki/I_Won%27t_Let_You_Down_(OK_Go_song))";
+    const expectedOutput = "OK go song";
+    const result = removeHyperlinks(inputText);
+        expect(result).toBe(expectedOutput);
+    });
+
 });
