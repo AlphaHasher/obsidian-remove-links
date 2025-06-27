@@ -36,7 +36,14 @@ describe('removeHyperlinks', () => {
     expect(result).toBe("");
   });
 
-  test('handle text with escaped brackets', () => {
+  test('handle text with escaped brackets 1', () => {
+    const inputText = "[text with \[escaped\] brackets](https://example.com)";
+    const expectedOutput = "text with \[escaped\] brackets";
+    const result = removeHyperlinks(inputText);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('handle text with escaped brackets 2', () => {
     const inputText = "[text with \\[escaped\\] brackets](https://example.com)";
     const expectedOutput = "text with \\[escaped\\] brackets";
     const result = removeHyperlinks(inputText);
