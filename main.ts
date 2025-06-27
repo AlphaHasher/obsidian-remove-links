@@ -79,7 +79,9 @@ export default class HyperlinkRemover extends Plugin {
 	}
 }
 
-// function to remove hyperlinks from a string
-function removeHyperlinks(text: string): string {
-	return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+export function removeHyperlinks(text: string): string {
+	// return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+	return text.replace(/\[((?:[^\]\\]|\\.|\](?!\())*?)\]\(([^)]+)\)/g, '$1');
 }
+
+module.exports = HyperlinkRemover;
