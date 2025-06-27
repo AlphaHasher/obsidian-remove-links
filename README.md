@@ -8,7 +8,12 @@
 
 ## Easy Command and Hotkey Assignment
 
-![Obsidian_N01HhE8PPg](https://github.com/user-attachments/assets/2fa8443f-9df3-43f8-a26d-96476a59a009)
+<img src="https://github.com/user-attachments/assets/2fa8443f-9df3-43f8-a26d-96476a59a009" width="600">
+
+
+## Advanced Hyperlink Removal
+
+<img src="https://github.com/user-attachments/assets/8ce438f4-55bb-4a1f-8553-73cc3f7dfa0e" width="600">
 
 
 # Release Notes
