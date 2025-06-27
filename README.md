@@ -15,3 +15,4 @@
 
 - **1.0.0**: Initial release.
 - **1.1.0**: Add Notice's for hyperlink removal logic and added context menu options
+- **1.2.0**: Added unit testing (for developers) and updated hyperlink removal logic to handle more edge cases
