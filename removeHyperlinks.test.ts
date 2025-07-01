@@ -1,4 +1,6 @@
-function removeHyperlinks(text) {
+import { describe, expect, test } from '@jest/globals';
+
+function removeHyperlinks(text:string): string {
 	let result = text;
 	let match;
 	const regex = /\[((?:[^\]\\]|\\.|\](?!\())*?)\]\(/g;
