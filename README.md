@@ -21,3 +21,4 @@
 - **1.0.0**: Initial release.
 - **1.1.0**: Add Notice's for hyperlink removal logic and added context menu options
 - **1.2.0**: Added unit testing (for developers) and updated hyperlink removal logic to handle more edge cases
+- **1.2.1**: Improved plugin structure, this does not affect functionality but makes it easier to maintain and extend in the future.
