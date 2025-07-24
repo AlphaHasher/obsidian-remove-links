@@ -57,4 +57,11 @@ describe('Remove Hyper Links Tests', () => {
         expect(result).toBe(expectedOutput);
     });
 
+  test('handling of ![]() pattern', () => {
+    const inputText = "![](image.png)";
+    const expectedOutput = "";
+    const result = removeHyperlinks(inputText);
+        expect(result).toBe(expectedOutput);
+    });    
+
 });
