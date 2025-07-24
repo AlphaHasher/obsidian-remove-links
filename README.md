@@ -10,10 +10,9 @@
 
 <img src="https://github.com/user-attachments/assets/2fa8443f-9df3-43f8-a26d-96476a59a009" width="600">
 
-
 ## Advanced Hyperlink Removal
 
-<img src="https://github.com/user-attachments/assets/8ce438f4-55bb-4a1f-8553-73cc3f7dfa0e" width="600">
+<img src="https://github.com/user-attachments/assets/6ce8b37f-4a4a-4ead-b48e-141716ab1775" width="600">
 
 
 # Release Notes
