@@ -1,4 +1,4 @@
-# Hyperlink Removal Plugin
+# Link Removal Plugin
 
 - Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks and wikilinks from either selections or the entire file.
 
@@ -6,13 +6,33 @@
 
 <img src="https://github.com/user-attachments/assets/b267fd86-e777-434c-a5b7-cc6fd2b3cafb" width="300">
 
+## Remove [Hyperlink](https://help.obsidian.md/links#Link+to+a+file) format in file/selection
+
+| Input                                                                               | Output                           |
+| ----------------------------------------------------------------------------------- | -------------------------------- |
+| `[Google](www.google.com)`                                                          | `Google`                         |
+| `[text with [brackets]](https://example.com)`                                       | `text with [brackets]`           |
+| `[text with \[escaped\] brackets](https://example.com)`                             | `text with \[escaped\] brackets` |
+| `[OK go song](https://en.m.wikipedia.org/wiki/I_Won%27t_Let_You_Down_(OK_Go_song))` | `OK go song`                     |
+| `![](image.png)`                                                                    | **REMOVED**                      |
+
+
+## Remove [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) format in file/selection
+
+| Input                                         | Output                                            |
+| --------------------------------------------- | ------------------------------------------------- |
+| `[[example.md]]`                              | `example.md`                                      |
+| `[[example.md\|alias]]`                       | `alias` **OR** **REMOVED** (depending on setting) |
+| `![[example.png]]`                            | **REMOVED**                                       |
+| `![[example.png\|300]]`                       | **REMOVED**                                       |
+| `[[text with \\[escaped\\] brackets]]`        | `text with \\[escaped\\] brackets`                |
+| `[[text with \\[escaped\\] brackets\|alias]]` | `alias` **OR** **REMOVED** (depending on setting) |
+
+
+
 ## Easy Command and Hotkey Assignment
 
 <img src="https://github.com/user-attachments/assets/2fa8443f-9df3-43f8-a26d-96476a59a009" width="600">
-
-## Advanced Hyperlink Removal
-
-<img src="https://github.com/user-attachments/assets/6ce8b37f-4a4a-4ead-b48e-141716ab1775" width="600">
 
 
 # Release Notes
