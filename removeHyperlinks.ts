@@ -102,10 +102,10 @@ export function removeHyperlinks(text: string): string {
 	return result;
 }
 
-export function removeWikilinks(text: string): string {
+export function removeWikilinks(text: string, keepAlias: boolean): string {
 	let result = text;
 	
-	// Very simple regex - match [[ content ]] with non-greedy matching
+	// Match [[ content ]]
 	const wikilinkRegex = /(!?)\[\[(.*?)\]\]/g;
 	
 	result = result.replace(wikilinkRegex, (match, isImage, content) => {
@@ -117,8 +117,8 @@ export function removeWikilinks(text: string): string {
 		// For regular wikilinks, check if there's a pipe (alias)
 		const pipeIndex = content.indexOf('|');
 		if (pipeIndex !== -1) {
-			// Use the alias (everything after the pipe)
-			return content.substring(pipeIndex + 1);
+			// keepAliase true/false logic
+			return keepAlias ? content.substring(pipeIndex + 1) : content.substring(0, pipeIndex);
 		}
 		
 		// No alias, use the link path

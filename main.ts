@@ -4,11 +4,13 @@ import { removeHyperlinks, removeWikilinks } from './removeHyperlinks';
 interface HyperlinkRemoverSettings {
 	removeHyperlinks: boolean;
 	removeWikilinks: boolean;
+	keepWikilinkAliases: boolean;
 }
 
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	removeHyperlinks: true,
-	removeWikilinks: true
+	removeWikilinks: true,
+	keepWikilinkAliases: true
 }
 
 export default class HyperlinkRemover extends Plugin {
@@ -107,7 +109,7 @@ export default class HyperlinkRemover extends Plugin {
 		}
 		
 		if (this.settings.removeWikilinks) {
-			result = removeWikilinks(result);
+			result = removeWikilinks(result, this.settings.keepWikilinkAliases);
 		}
 		
 		return result;
@@ -152,8 +154,26 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.removeWikilinks)
 				.onChange(async (value) => {
 					this.plugin.settings.removeWikilinks = value;
+					// If wikilinks are disabled, also disable keeping aliases
+					if (!value) {
+						this.plugin.settings.keepWikilinkAliases = false;
+					}
 					await this.plugin.saveSettings();
+					this.display(); // Refresh the display to show/hide the alias option
 				}));
+
+		// Only show the alias option if wikilinks removal is enabled
+		if (this.plugin.settings.removeWikilinks) {
+			new Setting(containerEl)
+				.setName('Keep Wikilink Aliases')
+				.setDesc('When removing wikilinks with aliases [[link|alias]], keep the alias text instead of the link path')
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.keepWikilinkAliases)
+					.onChange(async (value) => {
+						this.plugin.settings.keepWikilinkAliases = value;
+						await this.plugin.saveSettings();
+					}));
+		}
 	}
 }
 

@@ -196,110 +196,145 @@ describe('Remove Wiki Links Tests', () => {
   test('remove simple wikilinks', () => {
     const inputText = "[[example.md]]";
     const expectedOutput = "example.md";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
-  test('remove wikilinks with alias', () => {
+  test('remove wikilinks with alias - keep alias', () => {
     const inputText = "[[example.md|alias]]";
     const expectedOutput = "alias";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('remove wikilinks with alias - keep link path', () => {
+    const inputText = "[[example.md|alias]]";
+    const expectedOutput = "example.md";
+    const result = removeWikilinks(inputText, false);
     expect(result).toBe(expectedOutput);
   });
 
   test('remove image embeds', () => {
     const inputText = "![[example.png]]";
     const expectedOutput = "";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
   test('remove sized image embeds', () => {
     const inputText = "![[example.png|300]]";
     const expectedOutput = "";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
   test('remove wikilinks with escaped brackets', () => {
     const inputText = "[[text with \\[escaped\\] brackets]]";
     const expectedOutput = "text with \\[escaped\\] brackets";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
-  test('remove wikilinks with escaped brackets and alias', () => {
+  test('remove wikilinks with escaped brackets and alias - keep alias', () => {
     const inputText = "[[text with \\[escaped\\] brackets|alias]]";
     const expectedOutput = "alias";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('remove wikilinks with escaped brackets and alias - keep link path', () => {
+    const inputText = "[[text with \\[escaped\\] brackets|alias]]";
+    const expectedOutput = "text with \\[escaped\\] brackets";
+    const result = removeWikilinks(inputText, false);
     expect(result).toBe(expectedOutput);
   });
 
   test('handle text without wikilinks', () => {
     const inputText = "This is just plain text";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(inputText);
   });
 
   test('handle hyperlinks (should not be processed)', () => {
     const inputText = "[Google](https://google.com)";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(inputText);
   });
 
-  test('handle multiple wikilinks', () => {
+  test('handle multiple wikilinks - keep aliases', () => {
     const inputText = "Check out [[page1]] and [[page2|alias]]";
     const expectedOutput = "Check out page1 and alias";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('handle multiple wikilinks - keep link paths', () => {
+    const inputText = "Check out [[page1]] and [[page2|alias]]";
+    const expectedOutput = "Check out page1 and page2";
+    const result = removeWikilinks(inputText, false);
     expect(result).toBe(expectedOutput);
   });
 
   test('mixed hyperlinks and wikilinks - ignore hyperlinks', () => {
     const inputText = "See [external link](https://example.com) and [[wiki page]] for info";
     const expectedOutput = "See [external link](https://example.com) and wiki page for info";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
   test('wikilink next to hyperlink - only process wikilink', () => {
     const inputText = "[[wiki page]][hyperlink](https://example.com)";
     const expectedOutput = "wiki page[hyperlink](https://example.com)";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
   test('image embeds mixed with markdown images', () => {
     const inputText = "![[obsidian-image.png]] and ![markdown image](image.jpg)";
     const expectedOutput = " and ![markdown image](image.jpg)";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
   test('multiple lines with mixed content - only process wikilinks', () => {
     const inputText = "Line 1: [hyperlink](https://example.com)\nLine 2: [[wiki link]]\nLine 3: ![image](pic.jpg)";
     const expectedOutput = "Line 1: [hyperlink](https://example.com)\nLine 2: wiki link\nLine 3: ![image](pic.jpg)";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
-  test('wikilinks with complex aliases near hyperlinks', () => {
+  test('wikilinks with complex aliases near hyperlinks - keep aliases', () => {
     const inputText = "[[complex/path/file.md|Simple Name]] [link](https://example.com)";
     const expectedOutput = "Simple Name [link](https://example.com)";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilinks with complex aliases near hyperlinks - keep link paths', () => {
+    const inputText = "[[complex/path/file.md|Simple Name]] [link](https://example.com)";
+    const expectedOutput = "complex/path/file.md [link](https://example.com)";
+    const result = removeWikilinks(inputText, false);
     expect(result).toBe(expectedOutput);
   });
 
   test('nested brackets in wikilinks with nearby hyperlinks', () => {
     const inputText = "[[page with [brackets] in name]] and [normal link](https://site.com)";
     const expectedOutput = "page with [brackets] in name and [normal link](https://site.com)";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
     expect(result).toBe(expectedOutput);
   });
 
-  test('empty and malformed patterns', () => {
+  test('empty and malformed patterns - keep aliases', () => {
     const inputText = "[[]] [link](url) ![[]] [[valid|alias]]";
     const expectedOutput = " [link](url)  alias";
-    const result = removeWikilinks(inputText);
+    const result = removeWikilinks(inputText, true);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('empty and malformed patterns - keep link paths', () => {
+    const inputText = "[[]] [link](url) ![[]] [[valid|alias]]";
+    const expectedOutput = " [link](url)  valid";
+    const result = removeWikilinks(inputText, false);
     expect(result).toBe(expectedOutput);
   });
 
