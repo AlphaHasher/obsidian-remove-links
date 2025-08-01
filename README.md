@@ -32,7 +32,7 @@
 
 ## Easy Command and Hotkey Assignment
 
-<img src="https://github.com/user-attachments/assets/2fa8443f-9df3-43f8-a26d-96476a59a009" width="600">
+<img src="https://github.com/user-attachments/assets/e57d8f80-8d96-43e2-b627-5a0cbbfe3c84" width="600">
 
 
 # Release Notes
