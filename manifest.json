@@ -1,8 +1,8 @@
 {
 	"id": "hyperlink-remover",
 	"name": "Hyperlink Remover",
-	"version": "1.3.0",
-	"minAppVersion": "0.12.0",
+	"version": "2.0.0",
+	"minAppVersion": "0.15.0",
 	"description": "Remove hyperlinks from selected text or the entire note.",
 	"author": "Daniel Agafonov",
 	"authorUrl": "https://github.com/AlphaHasher",

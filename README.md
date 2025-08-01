@@ -1,6 +1,6 @@
 # Hyperlink Removal Plugin
 
-- Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks from either selections or the entire file.
+- Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks and wikilinks from either selections or the entire file.
 
 ## Right in the Context Menu!
 
@@ -22,3 +22,4 @@
 - **1.2.0**: Added unit testing (for developers) and updated hyperlink removal logic to handle more edge cases.
 - **1.2.1**: Improved plugin structure, this does not affect functionality but makes it easier to maintain and extend in the future.
 - **1.3.0**: Added hyperlink removal from image attachment case
+- **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias 

@@ -166,7 +166,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.removeWikilinks) {
 			new Setting(containerEl)
 				.setName('Keep Wikilink Aliases')
-				.setDesc('When removing wikilinks with aliases [[link|alias]], keep the alias text instead of the link path')
+				.setDesc('When removing wikilinks with aliases [[link|alias]], keep the alias text')
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.keepWikilinkAliases)
 					.onChange(async (value) => {
