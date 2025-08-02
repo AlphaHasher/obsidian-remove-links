@@ -6,7 +6,7 @@
 
 <img src="https://github.com/user-attachments/assets/b267fd86-e777-434c-a5b7-cc6fd2b3cafb" width="300">
 
-## Remove [Hyperlink](https://help.obsidian.md/links#Link+to+a+file) format in file/selection
+## Remove [Hyperlink](https://www.markdownguide.org/basic-syntax/#links) format in file/selection
 
 | Input                                                                               | Output                           |
 | ----------------------------------------------------------------------------------- | -------------------------------- |
