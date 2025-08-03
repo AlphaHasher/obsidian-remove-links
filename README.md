@@ -4,7 +4,7 @@
 
 ## Right in the Context Menu!
 
-<img src="https://github.com/user-attachments/assets/b267fd86-e777-434c-a5b7-cc6fd2b3cafb" width="300">
+<img src="https://github.com/user-attachments/assets/5951f3be-5b33-4fb1-804f-e3715795f262" width="300">
 
 ## Remove [Hyperlink](https://www.markdownguide.org/basic-syntax/#links) format in file/selection
 
@@ -42,4 +42,5 @@
 - **1.2.0**: Added unit testing (for developers) and updated hyperlink removal logic to handle more edge cases.
 - **1.2.1**: Improved plugin structure, this does not affect functionality but makes it easier to maintain and extend in the future.
 - **1.3.0**: Added hyperlink removal from image attachment case
-- **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias 
+- **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias
+- **2.1.0**: Added optional setting to keep or remove hyperlink text in [text](link)
