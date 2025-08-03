@@ -1,7 +1,7 @@
 {
 	"id": "hyperlink-remover",
 	"name": "Hyperlink Remover",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"minAppVersion": "0.15.0",
 	"description": "Remove hyperlinks from selected text or the entire note.",
 	"author": "Daniel Agafonov",
