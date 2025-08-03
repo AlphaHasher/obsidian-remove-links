@@ -134,10 +134,30 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	private checkAndShowDisabledWarning(): void {
+		// Check if both features are disabled
+		if (!this.plugin.settings.removeHyperlinks && !this.plugin.settings.removeWikilinks) {
+			new Notice('⚠️ Warning: Both hyperlink and wikilink removal is disabled. The plugin is effectively disabled.', 5000);
+		}
+	}
+
 	display(): void {
 		const {containerEl} = this;
 
 		containerEl.empty();
+
+		// Check if both features are disabled and show warning
+		const bothDisabled = !this.plugin.settings.removeHyperlinks && !this.plugin.settings.removeWikilinks;
+		if (bothDisabled) {
+			const warningDiv = containerEl.createDiv({
+				cls: 'setting-item',
+				attr: { style: 'background-color: #ffeaa7; border: 1px solid #fdcb6e; border-radius: 4px; padding: 10px; margin-bottom: 15px;' }
+			});
+			warningDiv.createEl('div', {
+				text: '⚠️ Warning: Both hyperlink and wikilink removal is disabled. The plugin is effectively disabled.',
+				attr: { style: 'color: #e17055; font-weight: bold;' }
+			});
+		}
 
 		// Hyperlinks section
 		containerEl.createEl('h3', {text: 'Hyperlinks'});
@@ -155,6 +175,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 					}
 					await this.plugin.saveSettings();
 					this.display(); // Refresh the display to show/hide the text option
+					this.checkAndShowDisabledWarning();
 				}));
 
 		// Only show the text option if hyperlinks removal is enabled
@@ -186,6 +207,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 					}
 					await this.plugin.saveSettings();
 					this.display(); // Refresh the display to show/hide the alias option
+					this.checkAndShowDisabledWarning();
 				}));
 
 		// Only show the alias option if wikilinks removal is enabled
