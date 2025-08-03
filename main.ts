@@ -24,8 +24,8 @@ export default class HyperlinkRemover extends Plugin {
 		this.addSettingTab(new HyperlinkRemoverSettingTab(this.app, this));
 
 		this.addCommand({
-			id: 'remove-hyperlinks-from-selection',
-			name: 'Remove hyperlinks from selection',
+			id: 'remove-links-from-selection',
+			name: 'Remove links from selection',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
 				const selection = editor.getSelection();
 				if (selection) {
@@ -42,8 +42,8 @@ export default class HyperlinkRemover extends Plugin {
 			}
 		});
 		this.addCommand({
-			id: 'remove-hyperlinks-from-file',
-			name: 'Remove hyperlinks from file',
+			id: 'remove-links-from-file',
+			name: 'Remove links from file',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
 				const content = editor.getValue();
 				const updatedContent = this.processText(content);
@@ -56,7 +56,7 @@ export default class HyperlinkRemover extends Plugin {
 			}
 		});
 
-		// Context menu / Remove hyperlinks / Selection
+		// Context menu / Remove links / Selection
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", (menu, editor, view) => {
 				menu.addItem((item) => {
@@ -77,7 +77,7 @@ export default class HyperlinkRemover extends Plugin {
 			})
 		);
 
-		// Context menu / Remove hyperlinks / File
+		// Context menu / Remove links / File
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", (menu, editor, view) => {
 				menu.addItem((item) => {
