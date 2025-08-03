@@ -1,4 +1,4 @@
-export function removeHyperlinks(text: string): string {
+export function removeHyperlinks(text: string, keepText: boolean): string {
 	let result = '';
 	let i = 0;
 	
@@ -86,8 +86,12 @@ export function removeHyperlinks(text: string): string {
 				
 				if (parenCount === 0) {
 					// This is a valid markdown link
-					// For images, add nothing; for links, add the link text
-					result += isImage ? '' : linkText;
+					// For images, add nothing; for links, add the link text if keepText is true
+					if (isImage) {
+						result += '';
+					} else {
+						result += keepText ? linkText : '';
+					}
 					i = k;
 					continue;
 				}

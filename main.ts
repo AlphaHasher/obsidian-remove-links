@@ -1,14 +1,16 @@
 import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { removeHyperlinks, removeWikilinks } from './removeHyperlinks';
+import { removeHyperlinks, removeWikilinks } from './removeLinks';
 
 interface HyperlinkRemoverSettings {
 	removeHyperlinks: boolean;
+	keepHyperlinkText: boolean;
 	removeWikilinks: boolean;
 	keepWikilinkAliases: boolean;
 }
 
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	removeHyperlinks: true,
+	keepHyperlinkText: true,
 	removeWikilinks: true,
 	keepWikilinkAliases: true
 }
@@ -105,7 +107,7 @@ export default class HyperlinkRemover extends Plugin {
 		let result = text;
 		
 		if (this.settings.removeHyperlinks) {
-			result = removeHyperlinks(result);
+			result = removeHyperlinks(result, this.settings.keepHyperlinkText);
 		}
 		
 		if (this.settings.removeWikilinks) {
@@ -137,6 +139,9 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		// Hyperlinks section
+		containerEl.createEl('h3', {text: 'Hyperlinks'});
+
 		new Setting(containerEl)
 			.setName('Remove Hyperlinks')
 			.setDesc('Remove markdown-style links [text](url) and images ![text](url)')
@@ -144,8 +149,29 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.removeHyperlinks)
 				.onChange(async (value) => {
 					this.plugin.settings.removeHyperlinks = value;
+					// If hyperlinks are disabled, also disable keeping text
+					if (!value) {
+						this.plugin.settings.keepHyperlinkText = false;
+					}
 					await this.plugin.saveSettings();
+					this.display(); // Refresh the display to show/hide the text option
 				}));
+
+		// Only show the text option if hyperlinks removal is enabled
+		if (this.plugin.settings.removeHyperlinks) {
+			new Setting(containerEl)
+				.setName('Keep Hyperlink Text')
+				.setDesc('When removing hyperlinks [text](url), keep the link text')
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.keepHyperlinkText)
+					.onChange(async (value) => {
+						this.plugin.settings.keepHyperlinkText = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		// Wikilinks section
+		containerEl.createEl('h3', {text: 'Wikilinks'});
 
 		new Setting(containerEl)
 			.setName('Remove Wikilinks')
