@@ -43,4 +43,4 @@
 - **1.2.1**: Improved plugin structure, this does not affect functionality but makes it easier to maintain and extend in the future.
 - **1.3.0**: Added hyperlink removal from image attachment case
 - **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias
-- **2.1.0**: Added optional setting to keep or remove hyperlink text in [text](link)
+- **2.1.0**: Added optional setting to keep or remove hyperlink text in `[text](link)`
