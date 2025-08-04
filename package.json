@@ -1,7 +1,7 @@
 {
-	"name": "hyperlink-remover",
-	"version": "2.1.0",
-	"description": "Remove hyperlinks from selected text or the entire note.",
+	"name": "link-remover",
+	"version": "2.1.1",
+	"description": "Easily remove hyperlinks and wikilinks from selected text or the entire note",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
