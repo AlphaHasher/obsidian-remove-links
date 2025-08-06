@@ -1,16 +1,11 @@
 function isInternalLink(url: string): boolean {
-	// Internal links typically don't have protocols (http/https) or are relative paths
-	// Examples: "page.md", "folder/page", "#heading", "./relative/path"
-	// External links have protocols: "https://example.com", "http://site.org"
-	
 	const trimmedUrl = url.trim();
 	
-	// Check for common protocols that indicate external links
 	if (trimmedUrl.match(/^https?:\/\//i)) {
 		return false;
 	}
 	
-	// Check for other protocols (ftp, mailto, etc.)
+	// ftp, mailto, etc
 	if (trimmedUrl.match(/^[a-z][a-z0-9+.-]*:/i)) {
 		return false;
 	}
