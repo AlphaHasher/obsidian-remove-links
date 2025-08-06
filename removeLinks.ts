@@ -1,4 +1,4 @@
-export function removeHyperlinks(text: string, keepText: boolean): string {
+export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = []): string {
 	let result = '';
 	let i = 0;
 	
@@ -74,6 +74,7 @@ export function removeHyperlinks(text: string, keepText: boolean): string {
 				// Find the matching closing parenthesis
 				let k = j + 1;
 				let parenCount = 1;
+				let url = '';
 				
 				while (k < text.length && parenCount > 0) {
 					if (text[k] === '(') {
@@ -81,10 +82,26 @@ export function removeHyperlinks(text: string, keepText: boolean): string {
 					} else if (text[k] === ')') {
 						parenCount--;
 					}
+					
+					if (parenCount > 0) {
+						url += text[k];
+					}
 					k++;
 				}
 				
 				if (parenCount === 0) {
+					// Check if URL is in whitelist
+					const isWhitelisted = whitelist.some(whitelistItem => 
+						url.toLowerCase().includes(whitelistItem.toLowerCase())
+					);
+					
+					if (isWhitelisted) {
+						// Keep the entire link if whitelisted
+						result += text.slice(i, k);
+						i = k;
+						continue;
+					}
+					
 					// This is a valid markdown link
 					// For images, add nothing; for links, add the link text if keepText is true
 					if (isImage) {

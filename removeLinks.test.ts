@@ -6,201 +6,265 @@ describe('Remove Hyper Links Tests', () => {
   test('remove hyperlinks from text', () => {
     const inputText = "[hypertext](https)";
     const expectedOutput = "hypertext";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('remove hyperlinks from text - keepText false', () => {
     const inputText = "[hypertext](https)";
     const expectedOutput = "";
-    const result = removeHyperlinks(inputText, false);
+    const result = removeHyperlinks(inputText, false, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('remove multiple hyperlinks', () => {
     const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
     const expectedOutput = "Check out Google and GitHub";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('remove multiple hyperlinks - keepText false', () => {
     const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
     const expectedOutput = "Check out  and ";
-    const result = removeHyperlinks(inputText, false);
+    const result = removeHyperlinks(inputText, false, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handle text without hyperlinks', () => {
     const inputText = "This is just plain text";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(inputText);
   });
 
   test('handle complex hyperlinks with nested brackets', () => {
     const inputText = "[text with [brackets]](https://example.com)";
     const expectedOutput = "text with [brackets]";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handle empty text', () => {
     const inputText = "";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe("");
   });
 
   test('handle text with escaped brackets 1', () => {
     const inputText = "[text with \[escaped\] brackets](https://example.com)";
     const expectedOutput = "text with \[escaped\] brackets";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handle text with escaped brackets 2', () => {
     const inputText = "[text with \\[escaped\\] brackets](https://example.com)";
     const expectedOutput = "text with \\[escaped\\] brackets";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handling of () in URL', () => {
     const inputText = "[OK go song](https://en.m.wikipedia.org/wiki/I_Won%27t_Let_You_Down_(OK_Go_song))";
     const expectedOutput = "OK go song";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
         expect(result).toBe(expectedOutput);
     });
 
   test('handling of ![]() pattern', () => {
     const inputText = "![](image.png)";
     const expectedOutput = "";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
         expect(result).toBe(expectedOutput);
     });
 
   test('handling of wikilinks', () => {
     const inputText = "[[example.md]]\n[hypertext](https)";
     const expectedOutput = "[[example.md]]\nhypertext"; // Should NOT be processed by removeHyperlinks
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handling of wikilinks with alias', () => {
     const inputText = "[[example.md|alias]]";
     const expectedOutput = "[[example.md|alias]]"; // Should NOT be processed by removeHyperlinks
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handling of image embeds', () => {
     const inputText = "![[example.png]]";
     const expectedOutput = "![[example.png]]"; // Should NOT be processed by removeHyperlinks
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handling of sized image embeds', () => {
     const inputText = "![[example.png|300]]";
     const expectedOutput = "![[example.png|300]]"; // Should NOT be processed by removeHyperlinks
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handling of wikilinks with escaped brackets', () => {
     const inputText = "[[text with \\[escaped\\] brackets]]";
     const expectedOutput = "[[text with \\[escaped\\] brackets]]"; // Should NOT be processed by removeHyperlinks
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('handling of wikilinks with escaped brackets and alias', () => {
     const inputText = "[[text with \\[escaped\\] brackets|alias]]";
     const expectedOutput = "[[text with \\[escaped\\] brackets|alias]]"; // Should NOT be processed by removeHyperlinks
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('mixed wikilinks and hyperlinks in same line', () => {
     const inputText = "See [[wiki page]] and [external link](https://example.com) for more info";
     const expectedOutput = "See [[wiki page]] and external link for more info";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('hyperlink immediately after wikilink', () => {
     const inputText = "[[wiki]]([hyperlink](https://example.com))";
     const expectedOutput = "[[wiki]](hyperlink)";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('wikilink immediately after hyperlink', () => {
     const inputText = "[link](https://example.com)[[wiki]]";
     const expectedOutput = "link[[wiki]]";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('nested wikilinks and hyperlinks', () => {
     const inputText = "Check [this [nested] link](https://example.com) and [[wiki|alias]] page";
     const expectedOutput = "Check this [nested] link and [[wiki|alias]] page";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('image embed followed by hyperlink', () => {
     const inputText = "![[image.png|300]] See [more info](https://example.com)";
     const expectedOutput = "![[image.png|300]] See more info";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('hyperlink followed by image embed', () => {
     const inputText = "[Click here](https://example.com) ![[screenshot.png]]";
     const expectedOutput = "Click here ![[screenshot.png]]";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('multiple lines with mixed link types', () => {
     const inputText = "Line 1: [[wiki link]]\nLine 2: [hyperlink](https://example.com)\nLine 3: ![[image.png]]";
     const expectedOutput = "Line 1: [[wiki link]]\nLine 2: hyperlink\nLine 3: ![[image.png]]";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('wikilink with brackets in URL-like format', () => {
     const inputText = "[[page.md]] and [real link](https://example.com/path[with]brackets)";
     const expectedOutput = "[[page.md]] and real link";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('markdown image next to wikilink', () => {
     const inputText = "![alt text](image.jpg)[[wiki page]]";
     const expectedOutput = "[[wiki page]]";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('complex mixed content with all link types', () => {
     const inputText = "Start ![[embed.png]] then [[wiki|alias]], followed by [hyperlink](https://example.com) and ![image](pic.jpg) end";
     const expectedOutput = "Start ![[embed.png]] then [[wiki|alias]], followed by hyperlink and  end";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('wikilink containing pipe character near hyperlink', () => {
     const inputText = "[[file|display name]] and [link](https://site.com/page?param=value|other)";
     const expectedOutput = "[[file|display name]] and link";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 
   test('empty wikilinks and hyperlinks', () => {
     const inputText = "[[]] [empty](https://example.com) ![[]]";
     const expectedOutput = "[[]] empty ![[]]";
-    const result = removeHyperlinks(inputText, true);
+    const result = removeHyperlinks(inputText, true, []);
+    expect(result).toBe(expectedOutput);
+  });
+
+  // Whitelist functionality tests
+  test('whitelist single domain - should preserve whitelisted link', () => {
+    const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Check out [Google](https://google.com) and GitHub";
+    const result = removeHyperlinks(inputText, true, ['google.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist multiple domains - should preserve all whitelisted links', () => {
+    const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, ['google.com', 'github.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist case insensitive - should preserve links regardless of case', () => {
+    const inputText = "[Wikipedia](https://WIKIPEDIA.org/wiki/Test)";
+    const expectedOutput = "[Wikipedia](https://WIKIPEDIA.org/wiki/Test)";
+    const result = removeHyperlinks(inputText, true, ['wikipedia.org']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist partial domain match - should preserve links with partial match', () => {
+    const inputText = "[MDN](https://developer.mozilla.org/docs) and [Other](https://example.com)";
+    const expectedOutput = "[MDN](https://developer.mozilla.org/docs) and Other";
+    const result = removeHyperlinks(inputText, true, ['mozilla.org']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist with keepText false - should still preserve whitelisted links', () => {
+    const inputText = "[Wikipedia](https://wikipedia.org) and [Other](https://example.com)";
+    const expectedOutput = "[Wikipedia](https://wikipedia.org) and ";
+    const result = removeHyperlinks(inputText, false, ['wikipedia.org']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist images - should preserve whitelisted image links', () => {
+    const inputText = "![Alt text](https://imgur.com/image.jpg) and ![Other](https://example.com/pic.png)";
+    const expectedOutput = "![Alt text](https://imgur.com/image.jpg) and ";
+    const result = removeHyperlinks(inputText, true, ['imgur.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist complex URLs - should handle URLs with parameters and paths', () => {
+    const inputText = "[Article](https://en.wikipedia.org/wiki/Test?param=value) and [Other](https://example.com)";
+    const expectedOutput = "[Article](https://en.wikipedia.org/wiki/Test?param=value) and Other";
+    const result = removeHyperlinks(inputText, true, ['wikipedia.org']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('whitelist with wikilinks - should not affect wikilink processing', () => {
+    const inputText = "[[wiki link]] and [hyperlink](https://wikipedia.org) and [other](https://example.com)";
+    const expectedOutput = "[[wiki link]] and [hyperlink](https://wikipedia.org) and other";
+    const result = removeHyperlinks(inputText, true, ['wikipedia.org']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('empty whitelist - should behave like original function', () => {
+    const inputText = "[Google](https://google.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Google and GitHub";
+    const result = removeHyperlinks(inputText, true, []);
     expect(result).toBe(expectedOutput);
   });
 

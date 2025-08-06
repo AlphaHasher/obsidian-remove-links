@@ -34,6 +34,12 @@
 
 <img src="https://github.com/user-attachments/assets/e57d8f80-8d96-43e2-b627-5a0cbbfe3c84" width="600">
 
+## Hyperlink Whitelist
+
+- You can whitelist specific domains or URLs that should never be removed.
+
+- Whitelist matching is case-insensitive and uses partial matching, so `wikipedia.org` will match `https://en.wikipedia.org/wiki/...`
+
 
 # Release Notes
 
@@ -44,3 +50,4 @@
 - **1.3.0**: Added hyperlink removal from image attachment case
 - **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias
 - **2.1.0**: Added optional setting to keep or remove hyperlink text in `[text](link)`
+- **2.2.0**: Added hyperlink whitelist feature to preserve specified domains/URLs

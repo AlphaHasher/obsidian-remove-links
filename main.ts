@@ -6,13 +6,15 @@ interface HyperlinkRemoverSettings {
 	keepHyperlinkText: boolean;
 	removeWikilinks: boolean;
 	keepWikilinkAliases: boolean;
+	hyperlinkWhitelist: string;
 }
 
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	removeHyperlinks: true,
 	keepHyperlinkText: true,
 	removeWikilinks: true,
-	keepWikilinkAliases: true
+	keepWikilinkAliases: true,
+	hyperlinkWhitelist: ''
 }
 
 export default class HyperlinkRemover extends Plugin {
@@ -107,7 +109,13 @@ export default class HyperlinkRemover extends Plugin {
 		let result = text;
 		
 		if (this.settings.removeHyperlinks) {
-			result = removeHyperlinks(result, this.settings.keepHyperlinkText);
+			// Parse whitelist from comma-separated string
+			const whitelist = this.settings.hyperlinkWhitelist
+				.split(',')
+				.map(item => item.trim())
+				.filter(item => item.length > 0);
+			
+			result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist);
 		}
 		
 		if (this.settings.removeWikilinks) {
@@ -187,6 +195,17 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.keepHyperlinkText)
 					.onChange(async (value) => {
 						this.plugin.settings.keepHyperlinkText = value;
+						await this.plugin.saveSettings();
+					}));
+
+			new Setting(containerEl)
+				.setName('Hyperlink Whitelist')
+				.setDesc('Comma-separated list of domains/URLs to never remove (e.g., wikipedia.org, github.com)')
+				.addText(text => text
+					.setPlaceholder('wikipedia.org, github.com')
+					.setValue(this.plugin.settings.hyperlinkWhitelist)
+					.onChange(async (value) => {
+						this.plugin.settings.hyperlinkWhitelist = value;
 						await this.plugin.saveSettings();
 					}));
 		}
