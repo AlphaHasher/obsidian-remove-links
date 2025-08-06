@@ -29,16 +29,27 @@
 | `[[text with \\[escaped\\] brackets\|alias]]` | `alias` **OR** **REMOVED** (depending on setting) |
 
 
-
 ## Easy Command and Hotkey Assignment
 
 <img src="https://github.com/user-attachments/assets/e57d8f80-8d96-43e2-b627-5a0cbbfe3c84" width="600">
 
-## Hyperlink Whitelist
+## Advanced Features
 
-- You can whitelist specific domains or URLs that should never be removed.
+### Hyperlink Type Filtering
+You can choose which types of hyperlinks to remove:
+- **Both Internal and External** : Removes all hyperlinks
+- **Internal Links Only**: Only removes internal links like `[Page](page.md)`, `[Section](#heading)`
+- **External Links Only**: Only removes external links like `[Site](https://example.com)`
 
-- Whitelist matching is case-insensitive and uses partial matching, so `wikipedia.org` will match `https://en.wikipedia.org/wiki/...`
+### Hyperlink Whitelist
+You can whitelist specific domains or URLs that should never be removed.
+
+**Note:** Whitelist matching is case-insensitive and uses partial matching.
+
+### Wikilink Whitelist
+You can whitelist specific wikilink paths that should never be removed.
+
+**Note:** Wikilink whitelist uses exact matching (case-insensitive). The entire wikilink path must match the whitelist entry.
 
 
 # Release Notes
@@ -50,4 +61,5 @@
 - **1.3.0**: Added hyperlink removal from image attachment case
 - **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias
 - **2.1.0**: Added optional setting to keep or remove hyperlink text in `[text](link)`
-- **2.2.0**: Added hyperlink whitelist feature to preserve specified domains/URLs
+- **2.1.1**: Added hyperlink whitelist feature to preserve specified domains/URLs
+- **2.2.0**: Added hyperlink type filtering (internal/external/both) and hyperlink/wikilink whitelist feature

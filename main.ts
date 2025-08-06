@@ -4,17 +4,21 @@ import { removeHyperlinks, removeWikilinks } from './removeLinks';
 interface HyperlinkRemoverSettings {
 	removeHyperlinks: boolean;
 	keepHyperlinkText: boolean;
+	hyperlinkType: 'both' | 'internal' | 'external';
 	removeWikilinks: boolean;
 	keepWikilinkAliases: boolean;
 	hyperlinkWhitelist: string;
+	wikilinkWhitelist: string;
 }
 
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	removeHyperlinks: true,
 	keepHyperlinkText: true,
+	hyperlinkType: 'both',
 	removeWikilinks: true,
 	keepWikilinkAliases: true,
-	hyperlinkWhitelist: ''
+	hyperlinkWhitelist: '',
+	wikilinkWhitelist: ''
 }
 
 export default class HyperlinkRemover extends Plugin {
@@ -115,11 +119,17 @@ export default class HyperlinkRemover extends Plugin {
 				.map(item => item.trim())
 				.filter(item => item.length > 0);
 			
-			result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist);
+			result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, this.settings.hyperlinkType);
 		}
 		
 		if (this.settings.removeWikilinks) {
-			result = removeWikilinks(result, this.settings.keepWikilinkAliases);
+			// Parse wikilink whitelist from comma-separated string
+			const wikilinkWhitelist = this.settings.wikilinkWhitelist
+				.split(',')
+				.map(item => item.trim())
+				.filter(item => item.length > 0);
+			
+			result = removeWikilinks(result, this.settings.keepWikilinkAliases, wikilinkWhitelist);
 		}
 		
 		return result;
@@ -189,6 +199,19 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 		// Only show the text option if hyperlinks removal is enabled
 		if (this.plugin.settings.removeHyperlinks) {
 			new Setting(containerEl)
+				.setName('Hyperlink Type')
+				.setDesc('Choose which types of hyperlinks to remove')
+				.addDropdown(dropdown => dropdown
+					.addOption('both', 'Both Internal and External')
+					.addOption('internal', 'Internal Links Only')
+					.addOption('external', 'External Links Only')
+					.setValue(this.plugin.settings.hyperlinkType)
+					.onChange(async (value) => {
+						this.plugin.settings.hyperlinkType = value as 'both' | 'internal' | 'external';
+						await this.plugin.saveSettings();
+					}));
+
+			new Setting(containerEl)
 				.setName('Keep Hyperlink Text')
 				.setDesc('When removing hyperlinks [text](url), keep the link text')
 				.addToggle(toggle => toggle
@@ -238,6 +261,17 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.keepWikilinkAliases)
 					.onChange(async (value) => {
 						this.plugin.settings.keepWikilinkAliases = value;
+						await this.plugin.saveSettings();
+					}));
+
+			new Setting(containerEl)
+				.setName('Wikilink Whitelist')
+				.setDesc('Comma-separated list of wikilink paths/names to never remove (e.g., important-note, folder/file)')
+				.addText(text => text
+					.setPlaceholder('important-note, templates/template')
+					.setValue(this.plugin.settings.wikilinkWhitelist)
+					.onChange(async (value) => {
+						this.plugin.settings.wikilinkWhitelist = value;
 						await this.plugin.saveSettings();
 					}));
 		}

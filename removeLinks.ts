@@ -1,4 +1,25 @@
-export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = []): string {
+function isInternalLink(url: string): boolean {
+	// Internal links typically don't have protocols (http/https) or are relative paths
+	// Examples: "page.md", "folder/page", "#heading", "./relative/path"
+	// External links have protocols: "https://example.com", "http://site.org"
+	
+	const trimmedUrl = url.trim();
+	
+	// Check for common protocols that indicate external links
+	if (trimmedUrl.match(/^https?:\/\//i)) {
+		return false;
+	}
+	
+	// Check for other protocols (ftp, mailto, etc.)
+	if (trimmedUrl.match(/^[a-z][a-z0-9+.-]*:/i)) {
+		return false;
+	}
+	
+	// Everything else is considered internal
+	return true;
+}
+
+export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = [], linkType: 'both' | 'internal' | 'external' = 'both'): string {
 	let result = '';
 	let i = 0;
 	
@@ -102,7 +123,20 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 						continue;
 					}
 					
-					// This is a valid markdown link
+					// Check link type filter
+					const urlIsInternal = isInternalLink(url);
+					const shouldRemove = linkType === 'both' || 
+						(linkType === 'internal' && urlIsInternal) || 
+						(linkType === 'external' && !urlIsInternal);
+					
+					if (!shouldRemove) {
+						// Keep the entire link if it doesn't match the filter
+						result += text.slice(i, k);
+						i = k;
+						continue;
+					}
+					
+					// This is a valid markdown link that should be removed
 					// For images, add nothing; for links, add the link text if keepText is true
 					if (isImage) {
 						result += '';
@@ -123,7 +157,7 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 	return result;
 }
 
-export function removeWikilinks(text: string, keepAlias: boolean): string {
+export function removeWikilinks(text: string, keepAlias: boolean, whitelist: string[] = []): string {
 	let result = text;
 	
 	// Match [[ content ]]
@@ -133,6 +167,18 @@ export function removeWikilinks(text: string, keepAlias: boolean): string {
 		// If it's an image embed (![[...]]), replace with empty string
 		if (isImage) {
 			return '';
+		}
+		
+		// Check if the wikilink content is in whitelist (exact match)
+		const isWhitelisted = whitelist.some(whitelistItem => {
+			// For exact matching, compare the full content or just the path part (before |)
+			const pathPart = content.indexOf('|') !== -1 ? content.substring(0, content.indexOf('|')) : content;
+			return pathPart.toLowerCase() === whitelistItem.toLowerCase();
+		});
+		
+		if (isWhitelisted) {
+			// Keep the entire wikilink if whitelisted
+			return match;
 		}
 		
 		// For regular wikilinks, check if there's a pipe (alias)
