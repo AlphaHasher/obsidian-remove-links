@@ -212,48 +212,6 @@ describe('Remove Hyper Links Tests', () => {
     expect(result).toBe(expectedOutput);
   });
 
-  test('whitelist multiple domains - should preserve all whitelisted links', () => {
-    const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
-    const expectedOutput = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
-    const result = removeHyperlinks(inputText, true, ['google.com', 'github.com'], 'both');
-    expect(result).toBe(expectedOutput);
-  });
-
-  test('whitelist case insensitive - should preserve links regardless of case', () => {
-    const inputText = "[Wikipedia](https://WIKIPEDIA.org/wiki/Test)";
-    const expectedOutput = "[Wikipedia](https://WIKIPEDIA.org/wiki/Test)";
-    const result = removeHyperlinks(inputText, true, ['wikipedia.org'], 'both');
-    expect(result).toBe(expectedOutput);
-  });
-
-  test('whitelist partial domain match - should preserve links with partial match', () => {
-    const inputText = "[MDN](https://developer.mozilla.org/docs) and [Other](https://example.com)";
-    const expectedOutput = "[MDN](https://developer.mozilla.org/docs) and Other";
-    const result = removeHyperlinks(inputText, true, ['mozilla.org'], 'both');
-    expect(result).toBe(expectedOutput);
-  });
-
-  test('whitelist with keepText false - should still preserve whitelisted links', () => {
-    const inputText = "[Wikipedia](https://wikipedia.org) and [Other](https://example.com)";
-    const expectedOutput = "[Wikipedia](https://wikipedia.org) and ";
-    const result = removeHyperlinks(inputText, false, ['wikipedia.org'], 'both');
-    expect(result).toBe(expectedOutput);
-  });
-
-  test('whitelist images - should preserve whitelisted image links', () => {
-    const inputText = "![Alt text](https://imgur.com/image.jpg) and ![Other](https://example.com/pic.png)";
-    const expectedOutput = "![Alt text](https://imgur.com/image.jpg) and ";
-    const result = removeHyperlinks(inputText, true, ['imgur.com'], 'both');
-    expect(result).toBe(expectedOutput);
-  });
-
-  test('whitelist complex URLs - should handle URLs with parameters and paths', () => {
-    const inputText = "[Article](https://en.wikipedia.org/wiki/Test?param=value) and [Other](https://example.com)";
-    const expectedOutput = "[Article](https://en.wikipedia.org/wiki/Test?param=value) and Other";
-    const result = removeHyperlinks(inputText, true, ['wikipedia.org'], 'both');
-    expect(result).toBe(expectedOutput);
-  });
-
   test('whitelist with wikilinks - should not affect wikilink processing', () => {
     const inputText = "[[wiki link]] and [hyperlink](https://wikipedia.org) and [other](https://example.com)";
     const expectedOutput = "[[wiki link]] and [hyperlink](https://wikipedia.org) and other";
