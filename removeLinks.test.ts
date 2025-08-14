@@ -475,3 +475,143 @@ describe('Remove Wiki Links Tests', () => {
   });
 
 });
+
+describe('Blacklist Mode Tests - Hyperlinks', () => {
+  test('blacklist mode - only remove blacklisted domains', () => {
+    const inputText = "Check out [Google](https://google.com) and [Facebook](https://facebook.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Check out [Google](https://google.com) and Facebook and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - multiple blacklisted domains', () => {
+    const inputText = "Links: [Facebook](https://facebook.com) and [Twitter](https://twitter.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Links: Facebook and Twitter and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com', 'twitter.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - case insensitive matching', () => {
+    const inputText = "Check [Facebook](https://FACEBOOK.COM) and [GitHub](https://github.com)";
+    const expectedOutput = "Check Facebook and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - partial domain matching', () => {
+    const inputText = "Links: [Facebook](https://www.facebook.com) and [FB Mobile](https://m.facebook.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Links: Facebook and FB Mobile and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - keepText false', () => {
+    const inputText = "Check out [Facebook](https://facebook.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Check out  and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, false, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - no matches leaves text unchanged', () => {
+    const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - empty blacklist removes nothing', () => {
+    const inputText = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const expectedOutput = "Check out [Google](https://google.com) and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, []);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - preserves wikilinks', () => {
+    const inputText = "See [[wiki page]] and [Facebook](https://facebook.com) for more";
+    const expectedOutput = "See [[wiki page]] and Facebook for more";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - handles images', () => {
+    const inputText = "![Facebook logo](https://facebook.com/logo.png) and [GitHub](https://github.com)";
+    const expectedOutput = " and [GitHub](https://github.com)";
+    const result = removeHyperlinks(inputText, true, [], 'both', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('blacklist mode - ignores link type filtering', () => {
+    const inputText = "[Internal](page.md) and [Facebook](https://facebook.com) and [GitHub](https://github.com)";
+    const expectedOutput = "[Internal](page.md) and Facebook and [GitHub](https://github.com)";
+    // Even with 'internal' filter, blacklist mode should only care about blacklist
+    const result = removeHyperlinks(inputText, true, [], 'internal', true, ['facebook.com']);
+    expect(result).toBe(expectedOutput);
+  });
+});
+
+describe('Blacklist Mode Tests - Wikilinks', () => {
+  test('wikilink blacklist - only remove blacklisted wikilinks', () => {
+    const inputText = "[[important-note]] and [[temporary-note]] and [[regular-note]]";
+    const expectedOutput = "[[important-note]] and temporary-note and [[regular-note]]";
+    const result = removeWikilinks(inputText, true, [], true, ['temporary-note']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - multiple blacklisted items', () => {
+    const inputText = "[[note1]] and [[draft]] and [[note2]] and [[temporary]]";
+    const expectedOutput = "[[note1]] and draft and [[note2]] and temporary";
+    const result = removeWikilinks(inputText, true, [], true, ['draft', 'temporary']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - case insensitive matching', () => {
+    const inputText = "[[Important-Note]] and [[DRAFT]] and [[other-note]]";
+    const expectedOutput = "[[Important-Note]] and DRAFT and [[other-note]]";
+    const result = removeWikilinks(inputText, true, [], true, ['draft']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - exact path matching required', () => {
+    const inputText = "[[draft]] and [[draft-note]] and [[my-draft]]";
+    const expectedOutput = "draft and [[draft-note]] and [[my-draft]]";
+    // Only exact match 'draft' should be removed, partial matches like 'draft-note' should remain
+    const result = removeWikilinks(inputText, true, [], true, ['draft']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - works with aliases, matches path part', () => {
+    const inputText = "[[draft|My Draft]] and [[important-note|Important]] and [[draft-copy]]";
+    const expectedOutput = "My Draft and [[important-note|Important]] and [[draft-copy]]";
+    const result = removeWikilinks(inputText, true, [], true, ['draft']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - keepAlias false behavior', () => {
+    const inputText = "[[draft|My Draft]] and [[important-note|Important]]";
+    const expectedOutput = "draft and [[important-note|Important]]";
+    const result = removeWikilinks(inputText, false, [], true, ['draft']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - handles image embeds', () => {
+    const inputText = "![[draft-image.png]] and [[draft]] and [[important-note]]";
+    const expectedOutput = " and draft and [[important-note]]";
+    // Image embeds should still be removed regardless of blacklist for images
+    const result = removeWikilinks(inputText, true, [], true, ['draft']);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - empty blacklist removes nothing', () => {
+    const inputText = "[[note1]] and [[note2]] and [[note3]]";
+    const expectedOutput = "[[note1]] and [[note2]] and [[note3]]";
+    const result = removeWikilinks(inputText, true, [], true, []);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink blacklist - preserves hyperlinks', () => {
+    const inputText = "[[draft]] and [GitHub](https://github.com) for reference";
+    const expectedOutput = "draft and [GitHub](https://github.com) for reference";
+    const result = removeWikilinks(inputText, true, [], true, ['draft']);
+    expect(result).toBe(expectedOutput);
+  });
+});

@@ -9,6 +9,8 @@ interface HyperlinkRemoverSettings {
 	keepWikilinkAliases: boolean;
 	hyperlinkWhitelist: string;
 	wikilinkWhitelist: string;
+	hyperlinkBlacklist: string;
+	wikilinkBlacklist: string;
 }
 
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
@@ -18,7 +20,9 @@ const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	removeWikilinks: true,
 	keepWikilinkAliases: true,
 	hyperlinkWhitelist: '',
-	wikilinkWhitelist: ''
+	wikilinkWhitelist: '',
+	hyperlinkBlacklist: '',
+	wikilinkBlacklist: ''
 }
 
 export default class HyperlinkRemover extends Plugin {
@@ -93,6 +97,41 @@ export default class HyperlinkRemover extends Plugin {
 			}
 		});
 
+		// Blacklist-based commands
+		this.addCommand({
+			id: 'remove-blacklisted-links-from-selection',
+			name: 'Remove blacklisted links from selection',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				const selection = editor.getSelection();
+				if (selection) {
+					const processedText = this.processText(selection, undefined, true);
+					if (selection !== processedText) {
+						editor.replaceSelection(processedText);
+						new Notice('Blacklisted links removed from selection');
+					} else {
+						new Notice('No blacklisted links found in selection');
+					}
+				} else {
+					new Notice('No text selected to remove links from');
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'remove-blacklisted-links-from-file',
+			name: 'Remove blacklisted links from file',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				const content = editor.getValue();
+				const updatedContent = this.processText(content, undefined, true);
+				if (content !== updatedContent) {
+					editor.setValue(updatedContent);
+					new Notice('Blacklisted links removed from file');
+				} else {
+					new Notice('No blacklisted links found in the file');
+				}
+			}
+		});
+
 		// Context menu / Remove links / Selection
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", (menu, editor, view) => {
@@ -140,29 +179,53 @@ export default class HyperlinkRemover extends Plugin {
 
 	}
 
-	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external'): string {
+	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external', blacklistMode: boolean = false): string {
 		let result = text;
 		
-		// Process hyperlinks if enabled in settings or if specific mode is provided
-		if (this.settings.removeHyperlinks || hyperlinkType) {
-			// Parse whitelist from comma-separated string
-			const whitelist = this.settings.hyperlinkWhitelist
+		if (blacklistMode) {
+			// Parse blacklists from comma-separated strings
+			const hyperlinkBlacklist = this.settings.hyperlinkBlacklist
 				.split(',')
 				.map(item => item.trim())
 				.filter(item => item.length > 0);
 			
-			const linkType = hyperlinkType || this.settings.hyperlinkType;
-			result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType);
-		}
-		
-		if (this.settings.removeWikilinks) {
-			// Parse wikilink whitelist from comma-separated string
-			const wikilinkWhitelist = this.settings.wikilinkWhitelist
+			const wikilinkBlacklist = this.settings.wikilinkBlacklist
 				.split(',')
 				.map(item => item.trim())
 				.filter(item => item.length > 0);
 			
-			result = removeWikilinks(result, this.settings.keepWikilinkAliases, wikilinkWhitelist);
+			// Process hyperlinks with blacklist, only remove if in blacklist)
+			if (hyperlinkBlacklist.length > 0) {
+				const linkType = hyperlinkType || 'both';
+				result = removeHyperlinks(result, this.settings.keepHyperlinkText, [], linkType, true, hyperlinkBlacklist);
+			}
+
+			// Process wikilinks with blacklist, only remove if in blacklist
+			if (wikilinkBlacklist.length > 0) {
+				result = removeWikilinks(result, this.settings.keepWikilinkAliases, [], true, wikilinkBlacklist);
+			}
+		} else {
+			// Process hyperlinks if enabled in settings or if specific mode is provided
+			if (this.settings.removeHyperlinks || hyperlinkType) {
+				// Parse whitelist from comma-separated string
+				const whitelist = this.settings.hyperlinkWhitelist
+					.split(',')
+					.map(item => item.trim())
+					.filter(item => item.length > 0);
+				
+				const linkType = hyperlinkType || this.settings.hyperlinkType;
+				result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType);
+			}
+			
+			if (this.settings.removeWikilinks) {
+				// Parse wikilink whitelist from comma-separated string
+				const wikilinkWhitelist = this.settings.wikilinkWhitelist
+					.split(',')
+					.map(item => item.trim())
+					.filter(item => item.length > 0);
+				
+				result = removeWikilinks(result, this.settings.keepWikilinkAliases, wikilinkWhitelist);
+			}
 		}
 		
 		return result;
@@ -308,6 +371,36 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
+
+		// Blacklist section
+		containerEl.createEl('h3', {text: 'Blacklist Mode'});
+
+		const blacklistDesc = containerEl.createEl('div', {
+			text: 'This mode only removes links that match the specified domains/paths. Use the dedicated "Remove blacklisted links" commands to activate this mode.',
+			attr: { style: 'margin-bottom: 10px; color: var(--text-muted);' }
+		});
+
+		new Setting(containerEl)
+			.setName('Hyperlink Blacklist')
+			.setDesc('Comma-separated list of domains/URLs to remove when using blacklist commands (e.g., facebook.com, twitter.com)')
+			.addText(text => text
+				.setPlaceholder('facebook.com, twitter.com')
+				.setValue(this.plugin.settings.hyperlinkBlacklist)
+				.onChange(async (value) => {
+					this.plugin.settings.hyperlinkBlacklist = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Wikilink Blacklist')
+			.setDesc('Comma-separated list of wikilink paths/names to remove when using blacklist commands (e.g., temporary-note, draft)')
+			.addText(text => text
+				.setPlaceholder('temporary-note, draft')
+				.setValue(this.plugin.settings.wikilinkBlacklist)
+				.onChange(async (value) => {
+					this.plugin.settings.wikilinkBlacklist = value;
+					await this.plugin.saveSettings();
+				}));
 	}
 }
 

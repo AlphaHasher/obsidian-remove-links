@@ -14,7 +14,7 @@ function isInternalLink(url: string): boolean {
 	return true;
 }
 
-export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = [], linkType: 'both' | 'internal' | 'external' = 'both'): string {
+export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = [], linkType: 'both' | 'internal' | 'external' = 'both', blacklistMode: boolean = false, blacklist: string[] = []): string {
 	let result = '';
 	let i = 0;
 	
@@ -106,29 +106,46 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 				}
 				
 				if (parenCount === 0) {
-					// Check if URL is in whitelist
-					const isWhitelisted = whitelist.some(whitelistItem => 
-						url.toLowerCase().includes(whitelistItem.toLowerCase())
-					);
-					
-					if (isWhitelisted) {
-						// Keep the entire link if whitelisted
-						result += text.slice(i, k);
-						i = k;
-						continue;
+					// Check blacklist/whitelist logic
+					if (blacklistMode) {
+						// In blacklist mode, only remove if URL matches blacklist
+						const isBlacklisted = blacklist.some(blacklistItem => 
+							url.toLowerCase().includes(blacklistItem.toLowerCase())
+						);
+						
+						if (!isBlacklisted) {
+							// Keep the entire link if not blacklisted
+							result += text.slice(i, k);
+							i = k;
+							continue;
+						}
+					} else {
+						// Whitelist mode - check if URL is in whitelist
+						const isWhitelisted = whitelist.some(whitelistItem => 
+							url.toLowerCase().includes(whitelistItem.toLowerCase())
+						);
+						
+						if (isWhitelisted) {
+							// Keep the entire link if whitelisted
+							result += text.slice(i, k);
+							i = k;
+							continue;
+						}
 					}
 					
-					// Check link type filter
-					const urlIsInternal = isInternalLink(url);
-					const shouldRemove = linkType === 'both' || 
-						(linkType === 'internal' && urlIsInternal) || 
-						(linkType === 'external' && !urlIsInternal);
-					
-					if (!shouldRemove) {
-						// Keep the entire link if it doesn't match the filter
-						result += text.slice(i, k);
-						i = k;
-						continue;
+					// Check link type filter (blacklist mode ignores)
+					if (!blacklistMode) {
+						const urlIsInternal = isInternalLink(url);
+						const shouldRemove = linkType === 'both' || 
+							(linkType === 'internal' && urlIsInternal) || 
+							(linkType === 'external' && !urlIsInternal);
+						
+						if (!shouldRemove) {
+							// Keep the entire link if it doesn't match the filter
+							result += text.slice(i, k);
+							i = k;
+							continue;
+						}
 					}
 					
 					// This is a valid markdown link that should be removed
@@ -152,7 +169,7 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 	return result;
 }
 
-export function removeWikilinks(text: string, keepAlias: boolean, whitelist: string[] = []): string {
+export function removeWikilinks(text: string, keepAlias: boolean, whitelist: string[] = [], blacklistMode: boolean = false, blacklist: string[] = []): string {
 	let result = text;
 	
 	// Match [[ content ]]
@@ -164,16 +181,31 @@ export function removeWikilinks(text: string, keepAlias: boolean, whitelist: str
 			return '';
 		}
 		
-		// Check if the wikilink content is in whitelist (exact match)
-		const isWhitelisted = whitelist.some(whitelistItem => {
-			// For exact matching, compare the full content or just the path part (before |)
-			const pathPart = content.indexOf('|') !== -1 ? content.substring(0, content.indexOf('|')) : content;
-			return pathPart.toLowerCase() === whitelistItem.toLowerCase();
-		});
-		
-		if (isWhitelisted) {
-			// Keep the entire wikilink if whitelisted
-			return match;
+		// Check blacklist/whitelist logic for wikilinks
+		if (blacklistMode) {
+			// In blacklist mode, only remove if wikilink matches blacklist
+			const isBlacklisted = blacklist.some(blacklistItem => {
+				// For exact matching, compare the full content or just the path part (before |)
+				const pathPart = content.indexOf('|') !== -1 ? content.substring(0, content.indexOf('|')) : content;
+				return pathPart.toLowerCase() === blacklistItem.toLowerCase();
+			});
+			
+			if (!isBlacklisted) {
+				// Keep the entire wikilink if not blacklisted
+				return match;
+			}
+		} else {
+			// Whitelist mode - check if the wikilink content is in whitelist (exact match)
+			const isWhitelisted = whitelist.some(whitelistItem => {
+				// For exact matching, compare the full content or just the path part (before |)
+				const pathPart = content.indexOf('|') !== -1 ? content.substring(0, content.indexOf('|')) : content;
+				return pathPart.toLowerCase() === whitelistItem.toLowerCase();
+			});
+			
+			if (isWhitelisted) {
+				// Keep the entire wikilink if whitelisted
+				return match;
+			}
 		}
 		
 		// For regular wikilinks, check if there's a pipe (alias)
