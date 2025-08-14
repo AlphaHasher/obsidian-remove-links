@@ -47,6 +47,7 @@ export default class HyperlinkRemover extends Plugin {
 				}
 			}
 		});
+
 		this.addCommand({
 			id: 'remove-links-from-file',
 			name: 'Remove links from file',
@@ -58,6 +59,36 @@ export default class HyperlinkRemover extends Plugin {
 					new Notice('Links removed from file');
 				} else {
 					new Notice('No links found in the file');
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'remove-external-links-from-file',
+			name: 'Remove external links from file',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				const content = editor.getValue();
+				const updatedContent = this.processText(content, 'external');
+				if (content !== updatedContent) {
+					editor.setValue(updatedContent);
+					new Notice('External links removed from file');
+				} else {
+					new Notice('No external links found in the file');
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'remove-internal-links-from-file',
+			name: 'Remove internal links from file',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				const content = editor.getValue();
+				const updatedContent = this.processText(content, 'internal');
+				if (content !== updatedContent) {
+					editor.setValue(updatedContent);
+					new Notice('Internal links removed from file');
+				} else {
+					new Notice('No internal links found in the file');
 				}
 			}
 		});
@@ -109,17 +140,19 @@ export default class HyperlinkRemover extends Plugin {
 
 	}
 
-	processText(text: string): string {
+	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external'): string {
 		let result = text;
 		
-		if (this.settings.removeHyperlinks) {
+		// Process hyperlinks if enabled in settings or if specific mode is provided
+		if (this.settings.removeHyperlinks || hyperlinkType) {
 			// Parse whitelist from comma-separated string
 			const whitelist = this.settings.hyperlinkWhitelist
 				.split(',')
 				.map(item => item.trim())
 				.filter(item => item.length > 0);
 			
-			result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, this.settings.hyperlinkType);
+			const linkType = hyperlinkType || this.settings.hyperlinkType;
+			result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType);
 		}
 		
 		if (this.settings.removeWikilinks) {
@@ -200,7 +233,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.removeHyperlinks) {
 			new Setting(containerEl)
 				.setName('Hyperlink Type')
-				.setDesc('Choose which types of hyperlinks to remove')
+				.setDesc('Choose which types of hyperlinks to remove from context menu. (command mode overrides this setting)')
 				.addDropdown(dropdown => dropdown
 					.addOption('both', 'Both Internal and External')
 					.addOption('internal', 'Internal Links Only')
