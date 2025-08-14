@@ -1,6 +1,6 @@
 {
 	"name": "link-remover",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"description": "Easily remove hyperlinks and wikilinks from selected text or the entire note",
 	"main": "main.js",
 	"scripts": {
