@@ -51,6 +51,11 @@ You can whitelist specific wikilink paths that should never be removed.
 
 **Note:** Wikilink whitelist uses exact matching (case-insensitive). The entire wikilink path must match the whitelist entry.
 
+## Say Thanks
+
+If you like this plugin and would like to buy me a coffee, you can!
+
+[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="BuyMeACoffee" width="140">](https://buymeacoffee.com/danielagafonov)
 
 # Release Notes
 
