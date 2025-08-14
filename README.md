@@ -51,6 +51,13 @@ You can whitelist specific wikilink paths that should never be removed.
 
 **Note:** Wikilink whitelist uses exact matching (case-insensitive). The entire wikilink path must match the whitelist entry.
 
+### Blacklist Mode
+Blacklist mode is the opposite of whitelist mode - it **only removes** links that match your specified blacklist, leaving all other links intact. This is useful when you want to remove specific unwanted links while preserving everything else.
+
+- You can specify seperate lists for both hyperlink and wikilink blacklist
+
+**Note:** Use the "Remove blacklisted links" commands to activate blacklist mode. This is the only place this option is available
+
 ## Say Thanks
 
 If you like this plugin and would like to buy me a coffee, you can!
