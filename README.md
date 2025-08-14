@@ -68,3 +68,4 @@ If you like this plugin and would like to buy me a coffee, you can!
 - **2.1.0**: Added optional setting to keep or remove hyperlink text in `[text](link)`
 - **2.1.1**: Added hyperlink whitelist feature to preserve specified domains/URLs
 - **2.2.0**: Added hyperlink type filtering (internal/external/both) and hyperlink/wikilink whitelist feature
+- **2.3.0**: Added explicit commands to remove links from either internal or extrnal origin
