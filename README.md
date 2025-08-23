@@ -1,10 +1,14 @@
 # Link Removal Plugin
 
-- Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks and wikilinks from either selections or the entire file.
+Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks and wikilinks from either selections or the entire file.
+
+If you like this plugin, feel free to support the development by buying a coffee:
+
+<a href="https://buymeacoffee.com/danielagafonov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Right in the Context Menu!
 
-<img src="https://github.com/user-attachments/assets/5951f3be-5b33-4fb1-804f-e3715795f262" width="300">
+<img src="https://github.com/user-attachments/assets/5951f3be-5b33-4fb1-804f-e3715795f262" width="200">
 
 ## Remove [Hyperlink](https://www.markdownguide.org/basic-syntax/#links) format in file/selection
 
@@ -31,7 +35,7 @@
 
 ## Easy Command and Hotkey Assignment
 
-<img src="https://github.com/user-attachments/assets/e57d8f80-8d96-43e2-b627-5a0cbbfe3c84" width="600">
+<img src="https://github.com/user-attachments/assets/e57d8f80-8d96-43e2-b627-5a0cbbfe3c84" width="450">
 
 ## Advanced Features
 
@@ -57,12 +61,6 @@ Blacklist mode is the opposite of whitelist mode - it **only removes** links tha
 - You can specify seperate lists for both hyperlink and wikilink blacklist
 
 **Note:** Use the "Remove blacklisted links" commands to activate blacklist mode. This is the only place this option is available
-
-## Say Thanks
-
-If you like this plugin and would like to buy me a coffee, you can!
-
-[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="BuyMeACoffee" width="140">](https://buymeacoffee.com/danielagafonov)
 
 # Release Notes
 
