@@ -1,5 +1,7 @@
 # Link Removal Plugin
 
+<img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/AlphaHasher/obsidian-remove-links/total?style=for-the-badge">
+
 Simple and lightweight plugin for [Obsidian](https://obsidian.md/) to remove hyperlinks and wikilinks from either selections or the entire file.
 
 If you like this plugin, feel free to support the development by buying a coffee:
