@@ -1,4 +1,4 @@
-# Link Removal Plugin
+# Link Remover
 
 <img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/AlphaHasher/obsidian-remove-links/total?style=for-the-badge">
 

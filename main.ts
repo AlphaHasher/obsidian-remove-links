@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { removeHyperlinks, removeWikilinks } from './removeLinks';
 
 interface HyperlinkRemoverSettings {
@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 }
 
 export default class HyperlinkRemover extends Plugin {
-	settings: HyperlinkRemoverSettings;
+	settings!: HyperlinkRemoverSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -36,7 +36,7 @@ export default class HyperlinkRemover extends Plugin {
 		this.addCommand({
 			id: 'remove-links-from-selection',
 			name: 'Remove links from selection',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor) => {
 				const selection = editor.getSelection();
 				if (selection) {
 					const processedText = this.processText(selection);
@@ -55,7 +55,7 @@ export default class HyperlinkRemover extends Plugin {
 		this.addCommand({
 			id: 'remove-links-from-file',
 			name: 'Remove links from file',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor) => {
 				const content = editor.getValue();
 				const updatedContent = this.processText(content);
 				if (content !== updatedContent) {
@@ -70,7 +70,7 @@ export default class HyperlinkRemover extends Plugin {
 		this.addCommand({
 			id: 'remove-external-links-from-file',
 			name: 'Remove external links from file',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor) => {
 				const content = editor.getValue();
 				const updatedContent = this.processText(content, 'external');
 				if (content !== updatedContent) {
@@ -85,7 +85,7 @@ export default class HyperlinkRemover extends Plugin {
 		this.addCommand({
 			id: 'remove-internal-links-from-file',
 			name: 'Remove internal links from file',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor) => {
 				const content = editor.getValue();
 				const updatedContent = this.processText(content, 'internal');
 				if (content !== updatedContent) {
@@ -101,7 +101,7 @@ export default class HyperlinkRemover extends Plugin {
 		this.addCommand({
 			id: 'remove-blacklisted-links-from-selection',
 			name: 'Remove blacklisted links from selection',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor) => {
 				const selection = editor.getSelection();
 				if (selection) {
 					const processedText = this.processText(selection, undefined, true);
@@ -120,7 +120,7 @@ export default class HyperlinkRemover extends Plugin {
 		this.addCommand({
 			id: 'remove-blacklisted-links-from-file',
 			name: 'Remove blacklisted links from file',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor) => {
 				const content = editor.getValue();
 				const updatedContent = this.processText(content, undefined, true);
 				if (content !== updatedContent) {
@@ -134,7 +134,7 @@ export default class HyperlinkRemover extends Plugin {
 
 		// Context menu / Remove links / Selection
 		this.registerEvent(
-			this.app.workspace.on("editor-menu", (menu, editor, view) => {
+			this.app.workspace.on("editor-menu", (menu, editor) => {
 				menu.addItem((item) => {
 					item.setTitle("Remove links from selection")
 						.setIcon("unlink")
@@ -155,7 +155,7 @@ export default class HyperlinkRemover extends Plugin {
 
 		// Context menu / Remove links / File
 		this.registerEvent(
-			this.app.workspace.on("editor-menu", (menu, editor, view) => {
+			this.app.workspace.on("editor-menu", (menu, editor) => {
 				menu.addItem((item) => {
 					item.setTitle("Remove links from file")
 						.setIcon("unlink")
@@ -179,21 +179,21 @@ export default class HyperlinkRemover extends Plugin {
 
 	}
 
-	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external', blacklistMode: boolean = false): string {
+	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external', blacklistMode = false): string {
 		let result = text;
-		
+
 		if (blacklistMode) {
 			// Parse blacklists from comma-separated strings
 			const hyperlinkBlacklist = this.settings.hyperlinkBlacklist
 				.split(',')
 				.map(item => item.trim())
 				.filter(item => item.length > 0);
-			
+
 			const wikilinkBlacklist = this.settings.wikilinkBlacklist
 				.split(',')
 				.map(item => item.trim())
 				.filter(item => item.length > 0);
-			
+
 			// Process hyperlinks with blacklist, only remove if in blacklist)
 			if (hyperlinkBlacklist.length > 0) {
 				const linkType = hyperlinkType || 'both';
@@ -212,22 +212,22 @@ export default class HyperlinkRemover extends Plugin {
 					.split(',')
 					.map(item => item.trim())
 					.filter(item => item.length > 0);
-				
+
 				const linkType = hyperlinkType || this.settings.hyperlinkType;
 				result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType);
 			}
-			
+
 			if (this.settings.removeWikilinks) {
 				// Parse wikilink whitelist from comma-separated string
 				const wikilinkWhitelist = this.settings.wikilinkWhitelist
 					.split(',')
 					.map(item => item.trim())
 					.filter(item => item.length > 0);
-				
+
 				result = removeWikilinks(result, this.settings.keepWikilinkAliases, wikilinkWhitelist);
 			}
 		}
-		
+
 		return result;
 	}
 
@@ -267,14 +267,14 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 				cls: 'setting-item',
 				attr: { style: 'background-color: #ffeaa7; border: 1px solid #fdcb6e; border-radius: 4px; padding: 10px; margin-bottom: 15px;' }
 			});
-			warningDiv.createEl('div', {
+			warningDiv.createDiv({
 				text: '⚠️ Warning: Both hyperlink and wikilink removal is disabled. The plugin is effectively disabled.',
 				attr: { style: 'color: #e17055; font-weight: bold;' }
 			});
 		}
 
 		// Hyperlinks section
-		containerEl.createEl('h3', {text: 'Hyperlinks'});
+		new Setting(containerEl).setName('Hyperlinks').setHeading();
 
 		new Setting(containerEl)
 			.setName('Remove Hyperlinks')
@@ -330,7 +330,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 		}
 
 		// Wikilinks section
-		containerEl.createEl('h3', {text: 'Wikilinks'});
+		new Setting(containerEl).setName('Wikilinks').setHeading();
 
 		new Setting(containerEl)
 			.setName('Remove Wikilinks')
@@ -373,9 +373,9 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 		}
 
 		// Blacklist section
-		containerEl.createEl('h3', {text: 'Blacklist Mode'});
+		new Setting(containerEl).setName('Blacklist Mode').setHeading();
 
-		const blacklistDesc = containerEl.createEl('div', {
+		containerEl.createDiv({
 			text: 'This mode only removes links that match the specified domains/paths. Use the dedicated "Remove blacklisted links" commands to activate this mode.',
 			attr: { style: 'margin-bottom: 10px; color: var(--text-muted);' }
 		});
