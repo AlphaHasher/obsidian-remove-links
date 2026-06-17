@@ -97,7 +97,6 @@ export default class HyperlinkRemover extends Plugin {
 			}
 		});
 
-		// Blacklist-based commands
 		this.addCommand({
 			id: 'remove-blacklisted-links-from-selection',
 			name: 'Remove blacklisted links from selection',
@@ -132,7 +131,6 @@ export default class HyperlinkRemover extends Plugin {
 			}
 		});
 
-		// Context menu / Remove links / Selection
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", (menu, editor) => {
 				menu.addItem((item) => {
@@ -153,7 +151,6 @@ export default class HyperlinkRemover extends Plugin {
 			})
 		);
 
-		// Context menu / Remove links / File
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", (menu, editor) => {
 				menu.addItem((item) => {
@@ -172,12 +169,9 @@ export default class HyperlinkRemover extends Plugin {
 				});
 			})
 		);
-
 	}
 
-	onunload() {
-
-	}
+	onunload() {}
 
 	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external', blacklistMode = false): string {
 		let result = text;
@@ -249,18 +243,16 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 	}
 
 	private checkAndShowDisabledWarning(): void {
-		// Check if both features are disabled
 		if (!this.plugin.settings.removeHyperlinks && !this.plugin.settings.removeWikilinks) {
 			new Notice('⚠️ Warning: Both hyperlink and wikilink removal is disabled. The plugin is effectively disabled.', 5000);
 		}
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
-		// Check if both features are disabled and show warning
 		const bothDisabled = !this.plugin.settings.removeHyperlinks && !this.plugin.settings.removeWikilinks;
 		if (bothDisabled) {
 			const warningDiv = containerEl.createDiv({
@@ -273,7 +265,6 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 			});
 		}
 
-		// Hyperlinks section
 		new Setting(containerEl).setName('Hyperlinks').setHeading();
 
 		new Setting(containerEl)
@@ -283,16 +274,15 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.removeHyperlinks)
 				.onChange(async (value) => {
 					this.plugin.settings.removeHyperlinks = value;
-					// If hyperlinks are disabled, also disable keeping text
 					if (!value) {
 						this.plugin.settings.keepHyperlinkText = false;
 					}
 					await this.plugin.saveSettings();
-					this.display(); // Refresh the display to show/hide the text option
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					this.display();
 					this.checkAndShowDisabledWarning();
 				}));
 
-		// Only show the text option if hyperlinks removal is enabled
 		if (this.plugin.settings.removeHyperlinks) {
 			new Setting(containerEl)
 				.setName('Hyperlink Type')
@@ -329,7 +319,6 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 					}));
 		}
 
-		// Wikilinks section
 		new Setting(containerEl).setName('Wikilinks').setHeading();
 
 		new Setting(containerEl)
@@ -339,16 +328,15 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.removeWikilinks)
 				.onChange(async (value) => {
 					this.plugin.settings.removeWikilinks = value;
-					// If wikilinks are disabled, also disable keeping aliases
 					if (!value) {
 						this.plugin.settings.keepWikilinkAliases = false;
 					}
 					await this.plugin.saveSettings();
-					this.display(); // Refresh the display to show/hide the alias option
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					this.display();
 					this.checkAndShowDisabledWarning();
 				}));
 
-		// Only show the alias option if wikilinks removal is enabled
 		if (this.plugin.settings.removeWikilinks) {
 			new Setting(containerEl)
 				.setName('Keep Wikilink Aliases')
@@ -372,7 +360,6 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 					}));
 		}
 
-		// Blacklist section
 		new Setting(containerEl).setName('Blacklist Mode').setHeading();
 
 		containerEl.createDiv({
@@ -403,4 +390,3 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 				}));
 	}
 }
-
