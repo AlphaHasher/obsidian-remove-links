@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -42,7 +42,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "tag=v$(node -p "require('./manifest.json').version")" >> $GITHUB_OUTPUT
+        run: echo "tag=$(node -p "require('./manifest.json').version")" >> $GITHUB_OUTPUT
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
