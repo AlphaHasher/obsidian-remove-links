@@ -77,4 +77,4 @@ Blacklist mode is the opposite of whitelist mode - it **only removes** links tha
 - **2.2.0**: Added hyperlink type filtering (internal/external/both) and hyperlink/wikilink whitelist feature
 - **2.3.0**: Added explicit commands to remove links from either internal or extrnal origin
 - **2.4.0**: Added blacklist mode to explicitly remove only links you want (opposite of whitelist)
-- **2.4.1**: Upgrade all dependencies to latest versions and fix all issues reported in community page
+- **2.4.2**: Upgrade all dependencies to latest versions and fix all issues reported in community page
