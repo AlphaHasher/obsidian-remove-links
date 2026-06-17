@@ -175,7 +175,7 @@ export function removeWikilinks(text: string, keepAlias: boolean, whitelist: str
 	// Match [[ content ]]
 	const wikilinkRegex = /(!?)\[\[(.*?)\]\]/g;
 	
-	result = result.replace(wikilinkRegex, (match, isImage, content) => {
+	result = result.replace(wikilinkRegex, (match: string, isImage: string, content: string) => {
 		// If it's an image embed (![[...]]), replace with empty string
 		if (isImage) {
 			return '';
