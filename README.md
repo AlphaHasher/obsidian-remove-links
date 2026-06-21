@@ -99,3 +99,4 @@ Blacklist mode is the opposite of whitelist mode - it **only removes** links tha
 - **2.4.0**: Added blacklist mode to explicitly remove only links you want (opposite of whitelist)
 - **2.4.2**: Upgrade all dependencies to latest versions and fix all issues reported in community page
 - **2.5.0**: Added support for stripping AI and Wikipedia citation links.
+- **2.5.1**: Fix issues reported in community page
