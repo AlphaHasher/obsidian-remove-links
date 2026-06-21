@@ -22,7 +22,6 @@ If you like this plugin, feel free to support the development by buying a coffee
 | `[OK go song](https://en.m.wikipedia.org/wiki/I_Won%27t_Let_You_Down_(OK_Go_song))` | `OK go song`                     |
 | `![](image.png)`                                                                    | **REMOVED**                      |
 
-
 ## Remove [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) format in file/selection
 
 | Input                                         | Output                                            |
@@ -34,6 +33,16 @@ If you like this plugin, feel free to support the development by buying a coffee
 | `[[text with \\[escaped\\] brackets]]`        | `text with \\[escaped\\] brackets`                |
 | `[[text with \\[escaped\\] brackets\|alias]]` | `alias` **OR** **REMOVED** (depending on setting) |
 
+## Remove Citation links in file/selection
+
+Citation markup is common when pasting AI-generated search results or Wikipedia content. The entire citation is removed.
+
+| Input                              | Output      |
+| ---------------------------------- | ----------- |
+| `[[1](url)]`                       | **REMOVED** |
+| `[[1](url), [2](url)]`             | **REMOVED** |
+| `Text.[[2]](url)`           | `Text.` (Wikipedia footnote, optional setting) |
+
 
 ## Easy Command and Hotkey Assignment
 
@@ -42,22 +51,33 @@ If you like this plugin, feel free to support the development by buying a coffee
 ## Advanced Features
 
 ### Hyperlink Type Filtering
+
 You can choose which types of hyperlinks to remove:
+
 - **Both Internal and External** : Removes all hyperlinks
 - **Internal Links Only**: Only removes internal links like `[Page](page.md)`, `[Section](#heading)`
 - **External Links Only**: Only removes external links like `[Site](https://example.com)`
 
+### Citation Removal
+
+AI-style citation links (`[[1](url)]`, `[[1](url), [2](url)]`) are stripped automatically whenever hyperlink removal is active (external scope).
+
+Wikipedia-style footnotes (`[[2]](url)`) are removed via the optional **Remove Wikipedia Citations** setting (off by default).
+
 ### Hyperlink Whitelist
+
 You can whitelist specific domains or URLs that should never be removed.
 
 **Note:** Whitelist matching is case-insensitive and uses partial matching.
 
 ### Wikilink Whitelist
+
 You can whitelist specific wikilink paths that should never be removed.
 
 **Note:** Wikilink whitelist uses exact matching (case-insensitive). The entire wikilink path must match the whitelist entry.
 
 ### Blacklist Mode
+
 Blacklist mode is the opposite of whitelist mode - it **only removes** links that match your specified blacklist, leaving all other links intact. This is useful when you want to remove specific unwanted links while preserving everything else.
 
 - You can specify seperate lists for both hyperlink and wikilink blacklist
@@ -78,3 +98,4 @@ Blacklist mode is the opposite of whitelist mode - it **only removes** links tha
 - **2.3.0**: Added explicit commands to remove links from either internal or extrnal origin
 - **2.4.0**: Added blacklist mode to explicitly remove only links you want (opposite of whitelist)
 - **2.4.2**: Upgrade all dependencies to latest versions and fix all issues reported in community page
+- **2.5.0**: Added support for stripping AI and Wikipedia citation links.

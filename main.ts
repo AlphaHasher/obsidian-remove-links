@@ -1,9 +1,10 @@
 import { App, Editor, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { removeHyperlinks, removeWikilinks } from './removeLinks';
+import { removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
 
 interface HyperlinkRemoverSettings {
 	removeHyperlinks: boolean;
 	keepHyperlinkText: boolean;
+	removeWikipediaCitations: boolean;
 	hyperlinkType: 'both' | 'internal' | 'external';
 	removeWikilinks: boolean;
 	keepWikilinkAliases: boolean;
@@ -16,6 +17,7 @@ interface HyperlinkRemoverSettings {
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	removeHyperlinks: true,
 	keepHyperlinkText: true,
+	removeWikipediaCitations: false,
 	hyperlinkType: 'both',
 	removeWikilinks: true,
 	keepWikilinkAliases: true,
@@ -208,6 +210,17 @@ export default class HyperlinkRemover extends Plugin {
 					.filter(item => item.length > 0);
 
 				const linkType = hyperlinkType || this.settings.hyperlinkType;
+
+				// Strip AI citation links (e.g. [[1](url)], [[1](url), [2](url)])
+				// before normal hyperlink removal. Citations are external by nature.
+				if (linkType !== 'internal') {
+					result = removeCitations(result);
+				}
+
+				if (this.settings.removeWikipediaCitations) {
+					result = removeWikipediaCitations(result);
+				}
+
 				result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType);
 			}
 
@@ -226,7 +239,8 @@ export default class HyperlinkRemover extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const data = await this.loadData() as Partial<HyperlinkRemoverSettings>;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
 	}
 
 	async saveSettings() {
@@ -278,6 +292,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						this.plugin.settings.keepHyperlinkText = false;
 					}
 					await this.plugin.saveSettings();
+					// New settings display type is not yet on stable releaes yet.
 					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					this.display();
 					this.checkAndShowDisabledWarning();
@@ -307,8 +322,18 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 
-			new Setting(containerEl)
-				.setName('Hyperlink Whitelist')
+				new Setting(containerEl)
+					.setName('Remove Wikipedia Citations')
+					.setDesc('Remove Wikipedia-style footnotes, e.g. "Text.[[2]](url)" -> "Text."')
+					.addToggle(toggle => toggle
+						.setValue(this.plugin.settings.removeWikipediaCitations)
+						.onChange(async (value) => {
+							this.plugin.settings.removeWikipediaCitations = value;
+							await this.plugin.saveSettings();
+						}));
+
+				new Setting(containerEl)
+					.setName('Hyperlink Whitelist')
 				.setDesc('Comma-separated list of domains/URLs to never remove (e.g., wikipedia.org, github.com)')
 				.addText(text => text
 					.setPlaceholder('wikipedia.org, github.com')
@@ -332,6 +357,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						this.plugin.settings.keepWikilinkAliases = false;
 					}
 					await this.plugin.saveSettings();
+					// New settings display type is not yet on stable releaes yet.
 					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					this.display();
 					this.checkAndShowDisabledWarning();

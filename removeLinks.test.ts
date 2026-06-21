@@ -1,6 +1,50 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { removeHyperlinks, removeWikilinks } from './removeLinks';
+import { removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
+
+describe('Remove Wikipedia Citations Tests', () => {
+  test('remove single footnote', () => {
+    expect(removeWikipediaCitations("Text.[[2]](http://a)")).toBe("Text.");
+  });
+
+  test('remove multiple footnotes', () => {
+    expect(removeWikipediaCitations("Fact[[1]](http://a) and more[[23]](http://b).")).toBe("Fact and more.");
+  });
+
+  test('leave plain numeric brackets untouched', () => {
+    expect(removeWikipediaCitations("text[2]")).toBe("text[2]");
+  });
+
+  test('leave wikilinks untouched', () => {
+    expect(removeWikipediaCitations("[[2]]")).toBe("[[2]]");
+  });
+});
+
+describe('Remove Citation Links Tests', () => {
+  test('remove single citation', () => {
+    expect(removeCitations("[[1](http://a)]")).toBe("");
+  });
+
+  test('remove multiple citations in one bracket', () => {
+    expect(removeCitations("text [[1](http://a), [2](http://b)] more")).toBe("text  more");
+  });
+
+  test('remove citation with 3+ links', () => {
+    expect(removeCitations("[[1](http://a), [2](http://b), [3](http://c)]")).toBe("");
+  });
+
+  test('remove citation inline after text', () => {
+    expect(removeCitations("Fact[[1](http://a)].")).toBe("Fact.");
+  });
+
+  test('leave plain wikilinks untouched', () => {
+    expect(removeCitations("[[some note]]")).toBe("[[some note]]");
+  });
+
+  test('leave normal markdown links untouched', () => {
+    expect(removeCitations("[label](http://a)")).toBe("[label](http://a)");
+  });
+});
 
 describe('Remove Hyper Links Tests', () => {
   test('remove hyperlinks from text', () => {

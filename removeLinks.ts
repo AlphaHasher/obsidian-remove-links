@@ -1,30 +1,44 @@
 function isInternalLink(url: string): boolean {
 	const trimmedUrl = url.trim();
-	
+
 	if (trimmedUrl.match(/^https?:\/\//i)) {
 		return false;
 	}
-	
+
 	// ftp, mailto, etc
 	if (trimmedUrl.match(/^[a-z][a-z0-9+.-]*:/i)) {
 		return false;
 	}
-	
+
 	// Everything else is considered internal
 	return true;
+}
+
+export function removeCitations(text: string): string {
+	// Matches AI-generated citation links: an outer [ ... ] wrapping one or more
+	// markdown links [label](url) separated by commas.
+	// e.g. [[1](url)] and [[1](url), [2](url)]
+	const citationRegex = /\[(?:\[[^\]]*\]\([^)]*\)(?:\s*,\s*\[[^\]]*\]\([^)]*\))*)\]/g;
+	return text.replace(citationRegex, '');
+}
+
+export function removeWikipediaCitations(text: string): string {
+	// Removes Wikipedia-style footnotes, e.g. "Text.[[2]](url)" -> "Text."
+	const citationRegex = /\[\[\d+\]\]\([^)]*\)/g;
+	return text.replace(citationRegex, '');
 }
 
 export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = [], linkType: 'both' | 'internal' | 'external' = 'both', blacklistMode: boolean = false, blacklist: string[] = []): string {
 	let result = '';
 	let i = 0;
-	
+
 	while (i < text.length) {
 		// Check for wikilink patterns first
 		if (text[i] === '[' && i + 1 < text.length && text[i + 1] === '[') {
 			// This is a wikilink, find the end and copy as-is
 			let j = i + 2;
 			let bracketCount = 2;
-			
+
 			while (j < text.length && bracketCount > 0) {
 				if (text[j] === '[') {
 					bracketCount++;
@@ -33,19 +47,19 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 				}
 				j++;
 			}
-			
+
 			// Copy the entire wikilink as-is
 			result += text.slice(i, j);
 			i = j;
 			continue;
 		}
-		
+
 		// Check for image embed patterns
 		if (text[i] === '!' && i + 1 < text.length && text[i + 1] === '[' && i + 2 < text.length && text[i + 2] === '[') {
 			// This is an image embed, find the end and copy as-is
 			let j = i + 3;
 			let bracketCount = 2;
-			
+
 			while (j < text.length && bracketCount > 0) {
 				if (text[j] === '[') {
 					bracketCount++;
@@ -54,23 +68,23 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 				}
 				j++;
 			}
-			
+
 			// Copy the entire image embed as-is
 			result += text.slice(i, j);
 			i = j;
 			continue;
 		}
-		
+
 		// Check for markdown link patterns
 		const isImage = text[i] === '!' && i + 1 < text.length && text[i + 1] === '[';
 		const linkStart = isImage ? i + 1 : i;
-		
+
 		if (text[linkStart] === '[') {
 			// Look for the closing ] followed by (
 			let j = linkStart + 1;
 			let bracketCount = 1;
 			let linkText = '';
-			
+
 			// Find the matching closing bracket
 			while (j < text.length && bracketCount > 0) {
 				if (text[j] === '[' && text[j - 1] !== '\\') {
@@ -78,41 +92,41 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 				} else if (text[j] === ']' && text[j - 1] !== '\\') {
 					bracketCount--;
 				}
-				
+
 				if (bracketCount > 0) {
 					linkText += text[j];
 				}
 				j++;
 			}
-			
+
 			// Check if this is followed by an opening parenthesis
 			if (j < text.length && text[j] === '(') {
 				// Find the matching closing parenthesis
 				let k = j + 1;
 				let parenCount = 1;
 				let url = '';
-				
+
 				while (k < text.length && parenCount > 0) {
 					if (text[k] === '(') {
 						parenCount++;
 					} else if (text[k] === ')') {
 						parenCount--;
 					}
-					
+
 					if (parenCount > 0) {
 						url += text[k];
 					}
 					k++;
 				}
-				
+
 				if (parenCount === 0) {
 					// Check blacklist/whitelist logic
 					if (blacklistMode) {
 						// In blacklist mode, only remove if URL matches blacklist
-						const isBlacklisted = blacklist.some(blacklistItem => 
+						const isBlacklisted = blacklist.some(blacklistItem =>
 							url.toLowerCase().includes(blacklistItem.toLowerCase())
 						);
-						
+
 						if (!isBlacklisted) {
 							// Keep the entire link if not blacklisted
 							result += text.slice(i, k);
@@ -121,10 +135,10 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 						}
 					} else {
 						// Whitelist mode - check if URL is in whitelist
-						const isWhitelisted = whitelist.some(whitelistItem => 
+						const isWhitelisted = whitelist.some(whitelistItem =>
 							url.toLowerCase().includes(whitelistItem.toLowerCase())
 						);
-						
+
 						if (isWhitelisted) {
 							// Keep the entire link if whitelisted
 							result += text.slice(i, k);
@@ -132,14 +146,14 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 							continue;
 						}
 					}
-					
+
 					// Check link type filter (blacklist mode ignores)
 					if (!blacklistMode) {
 						const urlIsInternal = isInternalLink(url);
-						const shouldRemove = linkType === 'both' || 
-							(linkType === 'internal' && urlIsInternal) || 
+						const shouldRemove = linkType === 'both' ||
+							(linkType === 'internal' && urlIsInternal) ||
 							(linkType === 'external' && !urlIsInternal);
-						
+
 						if (!shouldRemove) {
 							// Keep the entire link if it doesn't match the filter
 							result += text.slice(i, k);
@@ -147,7 +161,7 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 							continue;
 						}
 					}
-					
+
 					// This is a valid markdown link that should be removed
 					// For images, add nothing; for links, add the link text if keepText is true
 					if (isImage) {
@@ -160,27 +174,27 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 				}
 			}
 		}
-		
+
 		// If we get here, just copy the current character
 		result += text[i];
 		i++;
 	}
-	
+
 	return result;
 }
 
 export function removeWikilinks(text: string, keepAlias: boolean, whitelist: string[] = [], blacklistMode: boolean = false, blacklist: string[] = []): string {
 	let result = text;
-	
+
 	// Match [[ content ]]
 	const wikilinkRegex = /(!?)\[\[(.*?)\]\]/g;
-	
+
 	result = result.replace(wikilinkRegex, (match: string, isImage: string, content: string) => {
 		// If it's an image embed (![[...]]), replace with empty string
 		if (isImage) {
 			return '';
 		}
-		
+
 		// Check blacklist/whitelist logic for wikilinks
 		if (blacklistMode) {
 			// In blacklist mode, only remove if wikilink matches blacklist
@@ -189,7 +203,7 @@ export function removeWikilinks(text: string, keepAlias: boolean, whitelist: str
 				const pathPart = content.indexOf('|') !== -1 ? content.substring(0, content.indexOf('|')) : content;
 				return pathPart.toLowerCase() === blacklistItem.toLowerCase();
 			});
-			
+
 			if (!isBlacklisted) {
 				// Keep the entire wikilink if not blacklisted
 				return match;
@@ -201,23 +215,23 @@ export function removeWikilinks(text: string, keepAlias: boolean, whitelist: str
 				const pathPart = content.indexOf('|') !== -1 ? content.substring(0, content.indexOf('|')) : content;
 				return pathPart.toLowerCase() === whitelistItem.toLowerCase();
 			});
-			
+
 			if (isWhitelisted) {
 				// Keep the entire wikilink if whitelisted
 				return match;
 			}
 		}
-		
+
 		// For regular wikilinks, check if there's a pipe (alias)
 		const pipeIndex = content.indexOf('|');
 		if (pipeIndex !== -1) {
 			// keepAliase true/false logic
 			return keepAlias ? content.substring(pipeIndex + 1) : content.substring(0, pipeIndex);
 		}
-		
+
 		// No alias, use the link path
 		return content;
 	});
-	
+
 	return result;
 }
