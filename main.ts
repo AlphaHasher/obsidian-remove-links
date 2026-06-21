@@ -292,7 +292,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						this.plugin.settings.keepHyperlinkText = false;
 					}
 					await this.plugin.saveSettings();
-					// eslint-disable-next-line @typescript-eslint/no-deprecated -- New settings display type is not yet on stable releaes yet.
+					// eslint-disable-next-line @typescript-eslint/no-deprecated -- New settings display type is not yet on stable release.
 					this.display();
 					this.checkAndShowDisabledWarning();
 				}));
@@ -356,7 +356,7 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						this.plugin.settings.keepWikilinkAliases = false;
 					}
 					await this.plugin.saveSettings();
-					// eslint-disable-next-line @typescript-eslint/no-deprecated -- New settings display type is not yet on stable releaes yet.
+					// eslint-disable-next-line @typescript-eslint/no-deprecated -- New settings display type is not yet on stable release.
 					this.display();
 					this.checkAndShowDisabledWarning();
 				}));
