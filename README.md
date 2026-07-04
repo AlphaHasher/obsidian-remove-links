@@ -90,13 +90,14 @@ Blacklist mode is the opposite of whitelist mode - it **only removes** links tha
 - **1.1.0**: Add Notice's for hyperlink removal logic and added context menu options.
 - **1.2.0**: Added unit testing (for developers) and updated hyperlink removal logic to handle more edge cases.
 - **1.2.1**: Improved plugin structure, this does not affect functionality but makes it easier to maintain and extend in the future.
-- **1.3.0**: Added hyperlink removal from image attachment case
-- **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias
-- **2.1.0**: Added optional setting to keep or remove hyperlink text in `[text](link)`
-- **2.1.1**: Added hyperlink whitelist feature to preserve specified domains/URLs
-- **2.2.0**: Added hyperlink type filtering (internal/external/both) and hyperlink/wikilink whitelist feature
-- **2.3.0**: Added explicit commands to remove links from either internal or extrnal origin
-- **2.4.0**: Added blacklist mode to explicitly remove only links you want (opposite of whitelist)
-- **2.4.2**: Upgrade all dependencies to latest versions and fix all issues reported in community page
+- **1.3.0**: Added hyperlink removal from image attachment case.
+- **2.0.0**: Added [WikiLinks](https://help.obsidian.md/links#Link+to+a+file) support with option to keep or remove alias.
+- **2.1.0**: Added optional setting to keep or remove hyperlink text in `[text](link)`.
+- **2.1.1**: Added hyperlink whitelist feature to preserve specified domains/URLs.
+- **2.2.0**: Added hyperlink type filtering (internal/external/both) and hyperlink/wikilink whitelist feature.
+- **2.3.0**: Added explicit commands to remove links from either internal or extrnal origin.
+- **2.4.0**: Added blacklist mode to explicitly remove only links you want (opposite of whitelist).
+- **2.4.2**: Upgrade all dependencies to latest versions and fix all issues reported in community page.
 - **2.5.0**: Added support for stripping AI and Wikipedia citation links.
-- **2.5.1**: Fix issues reported in community page
+- **2.5.1**: Fix issues reported in community page.
+- **3.0.0**: Added support for filtering out what types of embeds to remove (image, audio, video, pdf, etc).
