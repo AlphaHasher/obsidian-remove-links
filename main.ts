@@ -1,5 +1,5 @@
 import { App, Editor, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
+import { EmbedTypeOptions, removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
 
 interface HyperlinkRemoverSettings {
 	removeHyperlinks: boolean;
@@ -12,6 +12,12 @@ interface HyperlinkRemoverSettings {
 	wikilinkWhitelist: string;
 	hyperlinkBlacklist: string;
 	wikilinkBlacklist: string;
+	removeImageEmbeds: boolean;
+	removeBaseEmbeds: boolean;
+	removeCanvasEmbeds: boolean;
+	removePdfEmbeds: boolean;
+	removeAudioVideoEmbeds: boolean;
+	removeNoteEmbeds: boolean;
 }
 
 const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
@@ -24,7 +30,13 @@ const DEFAULT_SETTINGS: HyperlinkRemoverSettings = {
 	hyperlinkWhitelist: '',
 	wikilinkWhitelist: '',
 	hyperlinkBlacklist: '',
-	wikilinkBlacklist: ''
+	wikilinkBlacklist: '',
+	removeImageEmbeds: true,
+	removeBaseEmbeds: true,
+	removeCanvasEmbeds: true,
+	removePdfEmbeds: true,
+	removeAudioVideoEmbeds: true,
+	removeNoteEmbeds: true
 }
 
 export default class HyperlinkRemover extends Plugin {
@@ -175,8 +187,20 @@ export default class HyperlinkRemover extends Plugin {
 
 	onunload() {}
 
+	getEmbedTypeOptions(): EmbedTypeOptions {
+		return {
+			images: this.settings.removeImageEmbeds,
+			base: this.settings.removeBaseEmbeds,
+			canvas: this.settings.removeCanvasEmbeds,
+			pdf: this.settings.removePdfEmbeds,
+			audioVideo: this.settings.removeAudioVideoEmbeds,
+			notes: this.settings.removeNoteEmbeds
+		};
+	}
+
 	processText(text: string, hyperlinkType?: 'both' | 'internal' | 'external', blacklistMode = false): string {
 		let result = text;
+		const embedTypes = this.getEmbedTypeOptions();
 
 		if (blacklistMode) {
 			// Parse blacklists from comma-separated strings
@@ -193,12 +217,12 @@ export default class HyperlinkRemover extends Plugin {
 			// Process hyperlinks with blacklist, only remove if in blacklist)
 			if (hyperlinkBlacklist.length > 0) {
 				const linkType = hyperlinkType || 'both';
-				result = removeHyperlinks(result, this.settings.keepHyperlinkText, [], linkType, true, hyperlinkBlacklist);
+				result = removeHyperlinks(result, this.settings.keepHyperlinkText, [], linkType, true, hyperlinkBlacklist, embedTypes);
 			}
 
 			// Process wikilinks with blacklist, only remove if in blacklist
 			if (wikilinkBlacklist.length > 0) {
-				result = removeWikilinks(result, this.settings.keepWikilinkAliases, [], true, wikilinkBlacklist);
+				result = removeWikilinks(result, this.settings.keepWikilinkAliases, [], true, wikilinkBlacklist, embedTypes);
 			}
 		} else {
 			// Process hyperlinks if enabled in settings or if specific mode is provided
@@ -221,7 +245,7 @@ export default class HyperlinkRemover extends Plugin {
 					result = removeWikipediaCitations(result);
 				}
 
-				result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType);
+				result = removeHyperlinks(result, this.settings.keepHyperlinkText, whitelist, linkType, false, [], embedTypes);
 			}
 
 			if (this.settings.removeWikilinks) {
@@ -231,7 +255,7 @@ export default class HyperlinkRemover extends Plugin {
 					.map(item => item.trim())
 					.filter(item => item.length > 0);
 
-				result = removeWikilinks(result, this.settings.keepWikilinkAliases, wikilinkWhitelist);
+				result = removeWikilinks(result, this.settings.keepWikilinkAliases, wikilinkWhitelist, false, [], embedTypes);
 			}
 		}
 
@@ -383,6 +407,73 @@ class HyperlinkRemoverSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
+
+		new Setting(containerEl).setName('Embeds').setHeading();
+
+		containerEl.createDiv({
+			text: 'Control which embed types get removed. Applies to both wikilink embeds ![[file]] and markdown embeds ![text](file).',
+			attr: { style: 'margin-bottom: 10px; color: var(--text-muted);' }
+		});
+
+		new Setting(containerEl)
+			.setName('Remove Image Embeds')
+			.setDesc('Remove image embeds, e.g. ![[Image 01.png]] and ![text](Image%2001.png)')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.removeImageEmbeds)
+				.onChange(async (value) => {
+					this.plugin.settings.removeImageEmbeds = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Remove Base Embeds')
+			.setDesc('Remove base embeds, e.g. ![[Base 01.base]]')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.removeBaseEmbeds)
+				.onChange(async (value) => {
+					this.plugin.settings.removeBaseEmbeds = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Remove Canvas Embeds')
+			.setDesc('Remove canvas embeds, e.g. ![[Canvas 01.canvas]]')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.removeCanvasEmbeds)
+				.onChange(async (value) => {
+					this.plugin.settings.removeCanvasEmbeds = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Remove PDF Embeds')
+			.setDesc('Remove PDF embeds, e.g. ![[PDF 01.pdf]]')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.removePdfEmbeds)
+				.onChange(async (value) => {
+					this.plugin.settings.removePdfEmbeds = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Remove Audio & Video Embeds')
+			.setDesc('Remove audio and video embeds, e.g. ![[Track 01.opus]]')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.removeAudioVideoEmbeds)
+				.onChange(async (value) => {
+					this.plugin.settings.removeAudioVideoEmbeds = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Remove Note Embeds')
+			.setDesc('Remove note embeds and embeds with unknown file types, e.g. ![[Some Note]] and ![[Note#Heading]]')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.removeNoteEmbeds)
+				.onChange(async (value) => {
+					this.plugin.settings.removeNoteEmbeds = value;
+					await this.plugin.saveSettings();
+				}));
 
 		new Setting(containerEl).setName('Blacklist Mode').setHeading();
 

@@ -14,6 +14,69 @@ function isInternalLink(url: string): boolean {
 	return true;
 }
 
+export interface EmbedTypeOptions {
+	images: boolean;
+	base: boolean;
+	canvas: boolean;
+	pdf: boolean;
+	audioVideo: boolean;
+	notes: boolean;
+}
+
+const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp', 'avif'];
+const AUDIO_VIDEO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'ogg', '3gp', 'flac', 'opus', 'aac', 'webm', 'mp4', 'ogv', 'mov', 'mkv'];
+
+export function getEmbedCategory(path: string): keyof EmbedTypeOptions {
+	let normalized = path.trim();
+
+	// Strip surrounding angle brackets (markdown <path with spaces> form)
+	if (normalized.startsWith('<') && normalized.endsWith('>')) {
+		normalized = normalized.slice(1, -1);
+	}
+
+	// Decode URL-encoded paths (e.g. %20)
+	try {
+		normalized = decodeURIComponent(normalized);
+	} catch {
+		// Keep as-is if decoding fails
+	}
+
+	// Strip alias (|) and subpath (#)
+	const pipeIndex = normalized.indexOf('|');
+	if (pipeIndex !== -1) {
+		normalized = normalized.substring(0, pipeIndex);
+	}
+	const hashIndex = normalized.indexOf('#');
+	if (hashIndex !== -1) {
+		normalized = normalized.substring(0, hashIndex);
+	}
+
+	const dotIndex = normalized.lastIndexOf('.');
+	if (dotIndex === -1 || dotIndex === normalized.length - 1) {
+		return 'notes';
+	}
+
+	const extension = normalized.substring(dotIndex + 1).toLowerCase();
+
+	if (IMAGE_EXTENSIONS.includes(extension)) {
+		return 'images';
+	}
+	if (AUDIO_VIDEO_EXTENSIONS.includes(extension)) {
+		return 'audioVideo';
+	}
+	if (extension === 'pdf') {
+		return 'pdf';
+	}
+	if (extension === 'base') {
+		return 'base';
+	}
+	if (extension === 'canvas') {
+		return 'canvas';
+	}
+
+	return 'notes';
+}
+
 export function removeCitations(text: string): string {
 	// Matches AI-generated citation links: an outer [ ... ] wrapping one or more
 	// markdown links [label](url) separated by commas.
@@ -28,7 +91,7 @@ export function removeWikipediaCitations(text: string): string {
 	return text.replace(citationRegex, '');
 }
 
-export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = [], linkType: 'both' | 'internal' | 'external' = 'both', blacklistMode: boolean = false, blacklist: string[] = []): string {
+export function removeHyperlinks(text: string, keepText: boolean, whitelist: string[] = [], linkType: 'both' | 'internal' | 'external' = 'both', blacklistMode: boolean = false, blacklist: string[] = [], embedTypes?: EmbedTypeOptions): string {
 	let result = '';
 	let i = 0;
 
@@ -165,6 +228,12 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 					// This is a valid markdown link that should be removed
 					// For images, add nothing; for links, add the link text if keepText is true
 					if (isImage) {
+						// Check embed type filter - keep the embed if its type is disabled
+						if (embedTypes && !embedTypes[getEmbedCategory(url)]) {
+							result += text.slice(i, k);
+							i = k;
+							continue;
+						}
 						result += '';
 					} else {
 						result += keepText ? linkText : '';
@@ -183,7 +252,7 @@ export function removeHyperlinks(text: string, keepText: boolean, whitelist: str
 	return result;
 }
 
-export function removeWikilinks(text: string, keepAlias: boolean, whitelist: string[] = [], blacklistMode: boolean = false, blacklist: string[] = []): string {
+export function removeWikilinks(text: string, keepAlias: boolean, whitelist: string[] = [], blacklistMode: boolean = false, blacklist: string[] = [], embedTypes?: EmbedTypeOptions): string {
 	let result = text;
 
 	// Match [[ content ]]
@@ -192,6 +261,10 @@ export function removeWikilinks(text: string, keepAlias: boolean, whitelist: str
 	result = result.replace(wikilinkRegex, (match: string, isImage: string, content: string) => {
 		// If it's an image embed (![[...]]), replace with empty string
 		if (isImage) {
+			// Check embed type filter - keep the embed if its type is disabled
+			if (embedTypes && !embedTypes[getEmbedCategory(content)]) {
+				return match;
+			}
 			return '';
 		}
 

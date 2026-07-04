@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
+import { EmbedTypeOptions, getEmbedCategory, removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
 
 describe('Remove Wikipedia Citations Tests', () => {
   test('remove single footnote', () => {
@@ -657,5 +657,136 @@ describe('Blacklist Mode Tests - Wikilinks', () => {
     const expectedOutput = "draft and [GitHub](https://github.com) for reference";
     const result = removeWikilinks(inputText, true, [], true, ['draft']);
     expect(result).toBe(expectedOutput);
+  });
+});
+
+describe('Embed type filtering', () => {
+  const allEnabled: EmbedTypeOptions = {
+    images: true,
+    base: true,
+    canvas: true,
+    pdf: true,
+    audioVideo: true,
+    notes: true
+  };
+
+  function only(disabled: keyof EmbedTypeOptions): EmbedTypeOptions {
+    return { ...allEnabled, [disabled]: false };
+  }
+
+  test('getEmbedCategory classifies extensions', () => {
+    expect(getEmbedCategory('Image 01.png')).toBe('images');
+    expect(getEmbedCategory('Base 01.base')).toBe('base');
+    expect(getEmbedCategory('Canvas 01.canvas')).toBe('canvas');
+    expect(getEmbedCategory('PDF 01.pdf')).toBe('pdf');
+    expect(getEmbedCategory('Track 01.opus')).toBe('audioVideo');
+    expect(getEmbedCategory('Video 01.mp4')).toBe('audioVideo');
+    expect(getEmbedCategory('Some Note')).toBe('notes');
+    expect(getEmbedCategory('Note.unknownext')).toBe('notes');
+  });
+
+  test('getEmbedCategory handles angle brackets, %20, alias, and subpath', () => {
+    expect(getEmbedCategory('<Image 01.png>')).toBe('images');
+    expect(getEmbedCategory('Image%2001.png')).toBe('images');
+    expect(getEmbedCategory('Image 01.png|300')).toBe('images');
+    expect(getEmbedCategory('PDF 01.pdf#page=3')).toBe('pdf');
+    expect(getEmbedCategory('Note#Heading')).toBe('notes');
+  });
+
+  test('wikilink embeds - all types removed when all enabled', () => {
+    const inputText = "![[Image 01.png]] ![[Base 01.base]] ![[Canvas 01.canvas]] ![[PDF 01.pdf]] ![[Track 01.opus]] ![[Some Note]]";
+    const expectedOutput = "     ";
+    const result = removeWikilinks(inputText, true, [], false, [], allEnabled);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink image embed kept when images disabled', () => {
+    const inputText = "![[Image 01.png]] and ![[PDF 01.pdf]]";
+    const expectedOutput = "![[Image 01.png]] and ";
+    const result = removeWikilinks(inputText, true, [], false, [], only('images'));
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink image embed with size alias kept when images disabled', () => {
+    const inputText = "![[Image 01.png|300]]";
+    const result = removeWikilinks(inputText, true, [], false, [], only('images'));
+    expect(result).toBe(inputText);
+  });
+
+  test('wikilink base embed kept when base disabled', () => {
+    const inputText = "![[Base 01.base]] and ![[Image 01.png]]";
+    const expectedOutput = "![[Base 01.base]] and ";
+    const result = removeWikilinks(inputText, true, [], false, [], only('base'));
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('wikilink canvas embed kept when canvas disabled', () => {
+    const inputText = "![[Canvas 01.canvas]]";
+    const result = removeWikilinks(inputText, true, [], false, [], only('canvas'));
+    expect(result).toBe(inputText);
+  });
+
+  test('wikilink pdf embed with subpath kept when pdf disabled', () => {
+    const inputText = "![[PDF 01.pdf#page=3]]";
+    const result = removeWikilinks(inputText, true, [], false, [], only('pdf'));
+    expect(result).toBe(inputText);
+  });
+
+  test('wikilink audio embed kept when audioVideo disabled', () => {
+    const inputText = "![[Track 01.opus]]";
+    const result = removeWikilinks(inputText, true, [], false, [], only('audioVideo'));
+    expect(result).toBe(inputText);
+  });
+
+  test('wikilink note embed kept when notes disabled', () => {
+    const inputText = "![[Some Note]] and ![[Note#Heading]] and ![[Image 01.png]]";
+    const expectedOutput = "![[Some Note]] and ![[Note#Heading]] and ";
+    const result = removeWikilinks(inputText, true, [], false, [], only('notes'));
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('regular wikilinks unaffected by embed type filter', () => {
+    const inputText = "[[Some Note|alias]] and ![[Image 01.png]]";
+    const expectedOutput = "alias and ![[Image 01.png]]";
+    const result = removeWikilinks(inputText, true, [], false, [], only('images'));
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('markdown image embed kept when images disabled', () => {
+    const inputText = "![text](Image01.png) and [link](https://example.com)";
+    const expectedOutput = "![text](Image01.png) and link";
+    const result = removeHyperlinks(inputText, true, [], 'both', false, [], only('images'));
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('markdown embed with angle brackets kept when images disabled', () => {
+    const inputText = "![text](<Image 01.png>)";
+    const result = removeHyperlinks(inputText, true, [], 'both', false, [], only('images'));
+    expect(result).toBe(inputText);
+  });
+
+  test('markdown embed with %20 encoded path kept when images disabled', () => {
+    const inputText = "![text](Image%2001.png)";
+    const result = removeHyperlinks(inputText, true, [], 'both', false, [], only('images'));
+    expect(result).toBe(inputText);
+  });
+
+  test('markdown pdf embed removed while image kept', () => {
+    const inputText = "![text](<Image 01.png>) and ![doc](<PDF 01.pdf>)";
+    const expectedOutput = "![text](<Image 01.png>) and ";
+    const result = removeHyperlinks(inputText, true, [], 'both', false, [], only('images'));
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('markdown embeds removed when all types enabled', () => {
+    const inputText = "![text](<Image 01.png>) and ![doc](<PDF 01.pdf>)";
+    const expectedOutput = " and ";
+    const result = removeHyperlinks(inputText, true, [], 'both', false, [], allEnabled);
+    expect(result).toBe(expectedOutput);
+  });
+
+  test('backward compat - omitted embedTypes removes all embeds', () => {
+    expect(removeWikilinks("![[Image 01.png]]", true)).toBe('');
+    expect(removeHyperlinks("![text](Image01.png)", true)).toBe('');
   });
 });
