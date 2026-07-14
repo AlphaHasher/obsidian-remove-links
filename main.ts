@@ -1,4 +1,5 @@
 import { App, Editor, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { applyTextUpdate } from './editorUtils';
 import { EmbedTypeOptions, removeCitations, removeHyperlinks, removeWikilinks, removeWikipediaCitations } from './removeLinks';
 
 interface HyperlinkRemoverSettings {
@@ -70,10 +71,8 @@ export default class HyperlinkRemover extends Plugin {
 			id: 'remove-links-from-file',
 			name: 'Remove links from file',
 			editorCallback: (editor: Editor) => {
-				const content = editor.getValue();
-				const updatedContent = this.processText(content);
-				if (content !== updatedContent) {
-					editor.setValue(updatedContent);
+				const updatedContent = this.processText(editor.getValue());
+				if (applyTextUpdate(editor, updatedContent)) {
 					new Notice('Links removed from file');
 				} else {
 					new Notice('No links found in the file');
@@ -85,10 +84,8 @@ export default class HyperlinkRemover extends Plugin {
 			id: 'remove-external-links-from-file',
 			name: 'Remove external links from file',
 			editorCallback: (editor: Editor) => {
-				const content = editor.getValue();
-				const updatedContent = this.processText(content, 'external');
-				if (content !== updatedContent) {
-					editor.setValue(updatedContent);
+				const updatedContent = this.processText(editor.getValue(), 'external');
+				if (applyTextUpdate(editor, updatedContent)) {
 					new Notice('External links removed from file');
 				} else {
 					new Notice('No external links found in the file');
@@ -100,10 +97,8 @@ export default class HyperlinkRemover extends Plugin {
 			id: 'remove-internal-links-from-file',
 			name: 'Remove internal links from file',
 			editorCallback: (editor: Editor) => {
-				const content = editor.getValue();
-				const updatedContent = this.processText(content, 'internal');
-				if (content !== updatedContent) {
-					editor.setValue(updatedContent);
+				const updatedContent = this.processText(editor.getValue(), 'internal');
+				if (applyTextUpdate(editor, updatedContent)) {
 					new Notice('Internal links removed from file');
 				} else {
 					new Notice('No internal links found in the file');
@@ -134,10 +129,8 @@ export default class HyperlinkRemover extends Plugin {
 			id: 'remove-blacklisted-links-from-file',
 			name: 'Remove blacklisted links from file',
 			editorCallback: (editor: Editor) => {
-				const content = editor.getValue();
-				const updatedContent = this.processText(content, undefined, true);
-				if (content !== updatedContent) {
-					editor.setValue(updatedContent);
+				const updatedContent = this.processText(editor.getValue(), undefined, true);
+				if (applyTextUpdate(editor, updatedContent)) {
 					new Notice('Blacklisted links removed from file');
 				} else {
 					new Notice('No blacklisted links found in the file');
@@ -171,10 +164,8 @@ export default class HyperlinkRemover extends Plugin {
 					item.setTitle("Remove links from file")
 						.setIcon("unlink")
 						.onClick(() => {
-							const content = editor.getValue();
-							const updatedContent = this.processText(content);
-							if (content !== updatedContent) {
-								editor.setValue(updatedContent);
+							const updatedContent = this.processText(editor.getValue());
+							if (applyTextUpdate(editor, updatedContent)) {
 								new Notice('Links removed from file');
 							} else {
 								new Notice('No links found in the file');
