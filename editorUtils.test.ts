@@ -1,7 +1,7 @@
 import { describe, expect, test } from "@jest/globals";
 import type { Editor, EditorPosition } from "obsidian";
 
-import { applyTextUpdate, diffRange } from "./editorUtils";
+import { applyTextUpdate, diffChanges, diffRange, TextDiff } from "./editorUtils";
 
 /**
  * Minimal Obsidian Editor, covering only the methods
@@ -9,21 +9,36 @@ import { applyTextUpdate, diffRange } from "./editorUtils";
  */
 class StubEditor {
 	value: string;
-	anchor: EditorPosition;
-	head: EditorPosition;
-	scroll = { top: 420, left: 7 };
+	cm?: { dispatch(spec: { changes: TextDiff[] }): void };
+	dispatched: { changes: TextDiff[] }[] = [];
 	replacedRanges: {
 		insert: string;
 		from: EditorPosition;
 		to: EditorPosition;
 	}[] = [];
 	scrolledTo: { left: number; top: number }[] = [];
+	selectionCalls = 0;
 	setValueCalls = 0;
 
-	constructor(value: string, cursor: EditorPosition = { line: 0, ch: 0 }) {
+	constructor(value: string, { cm = true }: { cm?: boolean } = {}) {
 		this.value = value;
-		this.anchor = cursor;
-		this.head = cursor;
+		if (cm) {
+			this.cm = {
+				dispatch: (spec) => {
+					this.dispatched.push(spec);
+					// Apply back-to-front so earlier offsets stay valid,
+					// mirroring how CodeMirror treats all changes in one
+					// dispatch as simultaneous.
+					for (let i = spec.changes.length - 1; i >= 0; i--) {
+						const { from, to, insert } = spec.changes[i]!;
+						this.value =
+							this.value.slice(0, from) +
+							insert +
+							this.value.slice(to);
+					}
+				},
+			};
+		}
 	}
 
 	getValue(): string {
@@ -43,17 +58,8 @@ class StubEditor {
 		return this.value.split("\n").length - 1;
 	}
 
-	getCursor(mode: "anchor" | "head"): EditorPosition {
-		return mode === "anchor" ? this.anchor : this.head;
-	}
-
-	setSelection(anchor: EditorPosition, head: EditorPosition): void {
-		this.anchor = anchor;
-		this.head = head;
-	}
-
-	getScrollInfo(): { top: number; left: number } {
-		return this.scroll;
+	setSelection(): void {
+		this.selectionCalls++;
 	}
 
 	scrollTo(left: number, top: number): void {
@@ -148,59 +154,116 @@ describe("diffRange", () => {
 	});
 });
 
+describe("diffChanges", () => {
+	test("identical text produces no changes", () => {
+		expect(diffChanges("same\ntext", "same\ntext")).toEqual([]);
+	});
+
+	test("scattered links become separate per-line changes, not one wide span", () => {
+		const oldText =
+			"[a](http://a) top\nuntouched middle\nbottom [b](http://b)";
+		const newText = "a top\nuntouched middle\nbottom b";
+
+		expect(diffChanges(oldText, newText)).toEqual([
+			{ from: 0, to: 13, insert: "a" },
+			{ from: 42, to: 55, insert: "b" },
+		]);
+	});
+
+	test("change confined to one line touches only that line", () => {
+		const oldText = "one\ntwo [[link]]\nthree";
+		const newText = "one\ntwo link\nthree";
+
+		expect(diffChanges(oldText, newText)).toEqual([
+			{ from: 8, to: 16, insert: "link" },
+		]);
+	});
+
+	test("differing line counts fall back to one change over the modified block", () => {
+		const oldText = "keep\ngone\nalso gone\nkeep";
+		const newText = "keep\nmerged\nkeep";
+
+		const changes = diffChanges(oldText, newText);
+		expect(changes).toHaveLength(1);
+		const { from, to, insert } = changes[0]!;
+		expect(oldText.slice(0, from) + insert + oldText.slice(to)).toBe(
+			newText,
+		);
+	});
+
+	test("every change replays onto the old text to produce the new text", () => {
+		const oldText =
+			"# Head\n[x](http://x) and [y](http://y)\nplain\n![[embed.png]]\ntail";
+		const newText = "# Head\nx and y\nplain\n\ntail";
+
+		const changes = diffChanges(oldText, newText);
+		let result = oldText;
+		for (let i = changes.length - 1; i >= 0; i--) {
+			const { from, to, insert } = changes[i]!;
+			result = result.slice(0, from) + insert + result.slice(to);
+		}
+		expect(result).toBe(newText);
+	});
+});
+
 describe("applyTextUpdate", () => {
+	const linked = "line [one](http://one)\nuntouched\nline [three](http://three)";
+	const unlinked = "line one\nuntouched\nline three";
+
 	test("returns false and touches nothing when content is unchanged", () => {
 		const editor = new StubEditor("no links here");
 
 		expect(applyTextUpdate(editor.asEditor(), "no links here")).toBe(false);
+		expect(editor.dispatched).toHaveLength(0);
 		expect(editor.replacedRanges).toHaveLength(0);
-		expect(editor.scrolledTo).toHaveLength(0);
 		expect(editor.setValueCalls).toBe(0);
 	});
 
-	test("replaces only the changed span and never calls setValue", () => {
-		const editor = new StubEditor(
-			"line one\nline [two](http://two)\nline three",
-		);
+	test("dispatches per-line changes through the CodeMirror view", () => {
+		const editor = new StubEditor(linked);
 
-		expect(
-			applyTextUpdate(
-				editor.asEditor(),
-				"line one\nline two\nline three",
-			),
-		).toBe(true);
-		expect(editor.value).toBe("line one\nline two\nline three");
-		expect(editor.setValueCalls).toBe(0);
+		expect(applyTextUpdate(editor.asEditor(), unlinked)).toBe(true);
+		expect(editor.dispatched).toEqual([
+			{
+				changes: [
+					{ from: 5, to: 22, insert: "one" },
+					{ from: 38, to: 59, insert: "three" },
+				],
+			},
+		]);
+		expect(editor.value).toBe(unlinked);
+		expect(editor.replacedRanges).toHaveLength(0);
+	});
+
+	test("falls back to replaceRange when the editor exposes no CodeMirror view", () => {
+		const editor = new StubEditor(linked, { cm: false });
+
+		expect(applyTextUpdate(editor.asEditor(), unlinked)).toBe(true);
+		expect(editor.value).toBe(unlinked);
 		expect(editor.replacedRanges).toEqual([
 			{
-				insert: "two",
-				from: { line: 1, ch: 5 },
-				to: { line: 1, ch: 22 },
+				insert: "three",
+				from: { line: 2, ch: 5 },
+				to: { line: 2, ch: 26 },
+			},
+			{
+				insert: "one",
+				from: { line: 0, ch: 5 },
+				to: { line: 0, ch: 22 },
 			},
 		]);
 	});
 
-	test("restores the cursor and the scroll position", () => {
-		const editor = new StubEditor(
-			"line one\nline [two](http://two)\nline three",
-			{ line: 2, ch: 4 },
-		);
+	test.each([
+		["with a CodeMirror view", true],
+		["without a CodeMirror view", false],
+	])("never moves the cursor or the scroll position %s", (_name, hasCm) => {
+		const editor = new StubEditor(linked, { cm: hasCm });
 
-		applyTextUpdate(editor.asEditor(), "line one\nline two\nline three");
+		applyTextUpdate(editor.asEditor(), unlinked);
 
-		expect(editor.head).toEqual({ line: 2, ch: 4 });
-		expect(editor.anchor).toEqual({ line: 2, ch: 4 });
-		expect(editor.scrolledTo).toEqual([{ left: 7, top: 420 }]);
-	});
-
-	test("clamps a cursor that the edit pushed past the end of its line", () => {
-		const editor = new StubEditor("line [two](http://two)", {
-			line: 0,
-			ch: 22,
-		});
-
-		applyTextUpdate(editor.asEditor(), "line two");
-
-		expect(editor.head).toEqual({ line: 0, ch: 8 });
+		expect(editor.setValueCalls).toBe(0);
+		expect(editor.selectionCalls).toBe(0);
+		expect(editor.scrolledTo).toHaveLength(0);
 	});
 });

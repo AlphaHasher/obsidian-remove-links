@@ -101,4 +101,4 @@ Blacklist mode is the opposite of whitelist mode - it **only removes** links tha
 - **2.5.0**: Added support for stripping AI and Wikipedia citation links.
 - **2.5.1**: Fix issues reported in community page.
 - **3.0.0**: Added support for filtering out what types of embeds to remove (image, audio, video, pdf, etc).
-- **3.1.0**: Fix cursor position jumping when using the remove link command.
+- **3.2.0**: Fix cursor position and viewport jumping when using the remove link command.
